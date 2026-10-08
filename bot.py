@@ -15,17 +15,15 @@ flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def health_check():
-    return "FIYYA Official AI Bot Engine Online!", 200
+    return "FIYYA Official AI Bot Enterprise Engine Online!", 200
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     flask_app.run(host="0.0.0.0", port=port)
 
-# 2. KONFIGURASI BOT TELEGRAM & FILE ID DOKUMEN
+# 2. KONFIGURASI BOT TELEGRAM & FILE ID DOKUMEN RESMI
 TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
-
-# FILE_ID RESMI WHITEPAPER PDF
 WHITEPAPER_FILE_ID = "BQACAgUAAxkBAAEviX1qx3V07WaYsErlOJImg2hYPDkHRgAC6SMAAgLcOVZOP909CN2LEz0E"
 
 ADMIN_TELEGRAM_ID = 8870805553
@@ -53,32 +51,28 @@ def save_user(chat_id):
         except Exception as e:
             logging.error(f"Error save user: {e}")
 
-# SYSTEM PROMPT WHITEPAPER V.01.0.3 LENGKAP
+# KNOWLEDGE BASE & SYSTEM PROMPT CERDAS FIYYA (TERKUNCI HANYA BAHAS FIYYA)
 SYSTEM_PROMPT = f"""
 PERAN & KONTROL UTAMA:
-Kamu adalah Asisten AI Resmi & Pintar untuk platform FIYYA ({REFERRAL_LINK}).
-Jawab pertanyaan pengguna secara cerdas, profesional, ramah, dan teliti dalam bahasa yang digunakan pengguna.
+Kamu adalah Asisten AI Resmi & Pintar untuk ekosistem FIYYA ({REFERRAL_LINK}).
+Tugas utamamu adalah memahami maksud/intent pengguna secara cerdas, terlepas dari bahasa gaul, singkatan, slang, typo, maupun gaya bahasa informal yang digunakan pengguna (seperti "apaan sih", "ini apaan", "fiyya tuh apa sih", "jelasin dong", dsb).
 
 ATURAN PERILAKU WAJIB:
-1. SAPAAN RAMAH: Setiap kali pengguna menyapa (Halo, Pagi/Sore/Malam, Hai, dsb), WAJIB membalas ramah terlebih dahulu.
-2. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan bahwa dokumen resmi memuat arsitektur HFT Agentic OS, Dual Vault, Career Matrix, dan Tokenomics.
-3. RESPON RINCI JARINGAN: Jika pengguna menanyakan tentang bonus jaringan/pengembangan tim, berikan rincian Career Matrix V1-V8, Daily Matching Bonus, dan Payout Cap secara detail.
-4. PENDAFTARAN: Arahkan pengguna untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan cara mendaftar/buat akun.
-5. BATASAN: Dilarang keras membahas agama, syariah, atau topik di luar ekosistem FIYYA.
+1. PEMAHAMAN INTENT: Pahami konteks pertanyaan meskipun kalimatnya sangat gaul, singkat, atau informal. Jawab dengan ramah, lugas, dan profesional dalam bahasa yang digunakan pengguna.
+2. SAPAAN RAMAH: Jika pengguna hanya menyapa (Halo, Pagi/Sore/Malam, Hai, dsb), WAJIB membalas sapaan dengan ramah terlebih dahulu.
+3. PENDAFTARAN: Selalu arahkan pengguna untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan cara mendaftar/join/buat akun.
+4. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan secara ringkas isinya dan informasikan bahwa file PDF telah dikirimkan secara langsung.
+5. BATASAN KETAT: DILARANG KERAS membahas agama, syariah, atau topik di luar ekosistem FIYYA. Jika ditanya hal umum di luar FIYYA, tolak secara sopan dan arahkan kembali ke FIYYA.
 
 DATABASE PENGETAHUAN RESMI FIYYA:
-- **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI yang terhubung via WebSocket ke exchange global (Binance, OKX, Coinbase, Kraken).
-- **Target Yield & Profit Split**: Target Daily Yield 1.5% per hari (Profit Split: 60% USDT cair + 40% FIYYA Token vesting harian 100 hari).
-- **Plan & Masa Kontrak (Payout Cap)**: Combined Lifetime Payout Cap antara 200% hingga 350% dari total deposit. Masa kontrak selesai begitu total profit mencapai Payout Cap.
+- **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI yang terhubung via WebSocket ke exchange global utama (Binance, OKX, Coinbase, Kraken).
+- **Target Yield & Profit Split Harian**: Target Daily Yield 1.5% per hari (Profit Split: 60% USDT cair yang bisa ditarik kapan saja + 40% FIYYA Token vesting harian 100 hari).
+- **Masa Kontrak & Plan (Payout Cap)**: Menggunakan Combined Lifetime Payout Cap antara 200% hingga 350% dari modal deposit. Masa kontrak selesai begitu total profit mencapai batas Payout Cap tersebut, lalu dapat melakukan re-stake / top-up.
 - **Sistem Dual Vault**:
-  * Staking Vault: Modal $100 - $10.000 USDT (yield pasif 1.5%/hari).
-  * Node Vault ($500 / $1.000 USDT): Paket kualifikasi akselerasi instan ke Rank V4/V5 tanpa syarat omzet tim awal yang besar.
-- **Rincian Bonus Pengembangan Jaringan (Career Matrix V1 - V8)**:
-  * **Daily Matching Bonus**: Bonus persentase dari profit harian pasif tim downline Anda.
-  * **Peningkatan Payout Cap**: Payout Cap bertambah seiring kenaikan rank (dari 200% hingga maksimal 350%).
-  * **Kualifikasi Rank (V1 - V8)**: Didasarkan pada akumulasi omzet staking tim jaringan.
-  * **Node Vault Pass**: Membeli Node Vault ($500 / $1.000) memotong syarat omzet dan langsung memberikan kualifikasi Rank V4 atau V5.
-- **Penarikan (Withdrawal / WD)**: Minimal WD 10 USDT. Fee: Instant (10%), >15 Hari (5%), >30 Hari (3%).
+  * Staking Vault: Modal partisipasi $100 - $10.000 USDT untuk pasif yield harian.
+  * Node Vault ($500 / $1.000 USDT): Paket kualifikasi akselerasi instan ke Rank V4 atau V5 tanpa syarat omzet tim awal yang besar.
+- **Program Pengembangan & Bonus Jaringan (Career Matrix V1 - V8)**: Daily Matching Bonus dari profit pasif tim downline, kenaikan Payout Cap hingga 350%, dan akselerasi rank.
+- **Penarikan (Withdrawal / WD)**: Minimal WD 10 USDT. Biaya (Fee): Instant (10%), >15 Hari (5%), >30 Hari (3%).
 - **Tokenomics**: Total Supply 1 Miliar Token BEP-20 (BNB Chain), Initial Listing DEX Price $0.01 USD.
 """
 
@@ -91,7 +85,7 @@ def get_official_buttons():
 def clean_markdown(text):
     return re.sub(r'[*_`\[\]()~>#+\-=|{}.!]', '', text)
 
-# 3. HANDLER KHUSUS MEMBER BARU JOIN GRUP (DUKUNGAN 14 BAHASA)
+# 3. HANDLER ADAPTIVE MULTI-LANGUAGE UNTUK MEMBER BARU (14 BAHASA)
 async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for member in update.message.new_chat_members:
         if member.id == context.bot.id:
@@ -224,9 +218,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logging.error(f"Gagal kirim PDF: {e}")
 
-    # 2. PRIO KEDUA INSTAN: SAPAAN BIASA
+    # 2. PRIO KEDUA INSTAN: SAPAAN BIASA (TANPA PERTANYAAN MATERI)
     is_greeting = any(re.search(r'\b' + re.escape(k) + r'\b', t) for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"])
-    is_query = any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya", "vault", "bunga", "profit", "sistem", "cara"])
+    is_query = any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya", "vault", "bunga", "profit", "sistem", "cara", "apaan", "apa"])
     
     if is_greeting and not is_query:
         if "pagi" in t: sapaan = "Selamat pagi!"
@@ -271,7 +265,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 data = {
                     "model": model,
                     "messages": messages_payload,
-                    "temperature": 0.3
+                    "temperature": 0.4
                 }
                 res = await client_http.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers)
                 if res.status_code == 200:
@@ -283,9 +277,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error model {model}: {e}")
                 continue
 
-    # 4. FALLBACK JIKA ALL API OVERLOAD
+    # 4. FALLBACK FLEKSIBEL TERMASUK BAHASA GAUL ("APAAN", "INI APA", DLSB)
     if not bot_reply:
-        if any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
+        if any(k in t for k in ["apa itu", "fiyya itu", "apaan", "penjelasan", "jelaskan", "tentang", "pengertian"]):
+            bot_reply = (
+                "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI "
+                "yang mengeksekusi perbedaan harga aset kripto di berbagai exchange global (Binance, OKX, Coinbase, Kraken) secara otomatis."
+            )
+        elif any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
             bot_reply = (
                 "Rincian Bonus & Program Pengembangan Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
                 "1. **Daily Matching Bonus**: Bonus persentase harian dari profit pasif tim downline Anda.\n"
@@ -299,8 +298,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             bot_reply = "Sistem kontrak di FIYYA menggunakan **Combined Lifetime Payout Cap** antara 200% hingga 350% dari modal deposit. Masa kontrak selesai jika total profit harian Anda sudah mencapai batas Payout Cap tersebut."
         elif any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
             bot_reply = "Target Daily Yield FIYYA adalah **1.5% per hari** (Profit split: 60% USDT cair yang dapat ditarik langsung + 40% Token FIYYA dengan vesting 100 hari)."
-        elif any(k in t for k in ["apa itu", "fiyya itu", "jelaskan", "pengertian"]):
-            bot_reply = "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) berbasis Agentic OS AI yang mengeksekusi perbedaan harga aset kripto di berbagai exchange global (Binance, OKX, Coinbase, Kraken) secara otomatis."
         elif any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
             bot_reply = "Minimal penarikan (WD) di FIYYA adalah **10 USDT** dengan biaya berjenjang: Instant (10%), >15 Hari (5%), dan >30 Hari (3%)."
         elif any(k in t for k in ["deposit", "modal", "depo", "vault"]):
