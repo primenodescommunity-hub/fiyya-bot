@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
-# 1. DUMMY WEB SERVER UNTUK RENDER
+# 1. DUMMY WEB SERVER UNTUK RENDER PORT 10000
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
@@ -50,46 +50,29 @@ def save_user(chat_id):
         except Exception as e:
             logging.error(f"Error save user: {e}")
 
-# KNOWLEDGE BASE LENGKAP + RAMAH SAPAAN
+# KNOWLEDGE BASE UTUH FIYYA
 SYSTEM_PROMPT = f"""
 PERAN & KONTROL UTAMA:
 Kamu adalah Asisten AI Resmi & Pintar untuk platform FIYYA ({REFERRAL_LINK}).
-Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, Mandarin, dll) dengan nada yang ramah, sopan, profesional, dan pintar.
+Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, Mandarin, dll) dengan nada yang ramah, sopan, profesional, dan cerdas.
 
 ATURAN PERILAKU:
-1. KESOPANAN & SAPAAN: Jika pengguna mengucapkan sapaan (seperti "Selamat pagi/siang/sore/malam", "Halo", "Apa kabar", "Konnichiwa", dll), Sapa balik dengan sangat ramah dan tanyakan apa yang bisa dibantu terkait FIYYA.
-2. RESPON KONTEKSUAL: Jawab pertanyaan user dengan presisi tinggi berdasarkan seluruh data resmi FIYYA di bawah ini.
+1. KESOPANAN & SAPAAN: Jika pengguna mengucapkan sapaan (seperti "Selamat pagi/siang/sore/malam", "Halo", "Apa kabar"), Sapa balik dengan ramah.
+2. RESPON KONTEKSUAL: Jawab pertanyaan user secara cerdas, lengkap, dan alami berdasarkan data resmi FIYYA di bawah ini.
 3. PENDAFTARAN: Jika pengguna menanyakan cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
 4. BATASAN: Dilarang keras menyebutkan syariah, agama, atau hal-hal di luar ekosistem FIYYA.
 
-DATABASE PENGETAHUAN LENGKAP FIYYA (WHITEPAPER V.01.0.3):
-1. **Definisi Platform**:
-   - FIYYA adalah platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI.
-   - Terhubung secara real-time via infrastruktur WebSocket sub-milidetik ke exchange global utama (Binance, OKX, Coinbase, Kraken).
-
-2. **Target Yield & Profit Split Harian**:
-   - Target Daily Yield Personal: **1.5% per hari**.
-   - Pembagian Hasil (Profit Split): **60% USDT** (cair & dapat ditarik kapan saja) + **40% FIYYA Token** (vesting harian selama 100 hari).
-
-3. **Sistem Dual Vault**:
-   - **Staking Vault**: Modal partisipasi mulai dari **$100 USDT** hingga $10.000 USDT untuk mendapatkan yield pasif harian.
-   - **Node Vault**: Nominal partisipasi $500 atau $1.000 USDT. Memberikan akselerasi kualifikasi instan ke Rank V4/V5 tanpa memerlukan struktur jaringan awal yang besar.
-
-4. **Reward & Bonus Jaringan (Career Matrix V1 - V8)**:
-   - Memiliki jenjang karir V1 hingga V8 berdasarkan akumulasi omzet tim downline.
-   - **Daily Matching Bonus**: Mendapatkan persentase bonus harian dari hasil profit harian jaringan downline.
-   - **Combined Lifetime Payout Cap**: Batas maksimal total pendapatan berjenjang mulai dari **200% hingga 350%** dari total deposit sebelum harus melakukan top-up/re-stake.
-
-5. **Ketentuan Penarikan (Withdrawal / WD)**:
-   - **Minimal Penarikan (Minimal WD)**: **10 USDT**.
-   - **Biaya Penarikan (Withdrawal Fee)** berjenjang berdasarkan lama masa simpan:
-     * Instant / Langsung Penarikan: Biaya 10%
-     * Setelah 15 Hari Masa Simpan: Biaya 5%
-     * Setelah 30 Hari Masa Simpan: Biaya 3%
-
-6. **Tokenomics (FIYYA Token)**:
-   - Total Supply: 1.000.000.000 (1 Miliar) Token BEP-20 di BNB Chain.
-   - Initial Listing / DEX Price: $0.01 USD per token.
+DATABASE PENGETAHUAN RESMI FIYYA (WHITEPAPER V.01.0.3):
+1. **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI.
+2. **Reward & Hasil Harian**: Target Daily Yield **1.5% per hari**. Pembagian hasil: **60% USDT** (cair & dapat ditarik) + **40% FIYYA Token** (vesting 100 hari).
+3. **Sistem Plan & Masa Kontrak (Payout Cap)**:
+   - FIYYA menggunakan sistem **Combined Lifetime Payout Cap** berjenjang mulai dari **200% hingga 350%** dari nilai deposit.
+   - Masa kontrak/plan berakhir saat akumulasi pendapatan mencapai batas Payout Cap tersebut, setelah itu member dapat melakukan re-stake / top-up.
+4. **Apa itu $500 / $1000 (Node Vault)**:
+   - Paket partisipasi **Node Vault** seharga **$500 atau $1.000 USDT**.
+   - Fungsinya memberikan akselerasi kualifikasi rank jaringan **V4 atau V5 secara instan** tanpa perlu syarat omzet tim awal yang besar.
+5. **Staking Vault**: Deposit partisipasi reguler mulai dari **$100 USDT** hingga $10.000 USDT.
+6. **Penarikan (WD)**: Minimal Penarikan **10 USDT**. Biaya penarikan: Instant (10%), >15 Hari (5%), >30 Hari (3%).
 """
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -133,7 +116,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "Selamat datang di FIYYA Official AI Assistant.\n\n"
         "Saya adalah asisten virtual resmi untuk platform FIYYA.\n"
-        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, reward jaringan, atau penarikan?"
+        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, reward, plan, atau penarikan?"
     )
     await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
@@ -161,9 +144,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     
     data = {
-        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "model": "qwen/qwen-2.5-7b-instruct:free",
         "messages": messages_payload,
-        "temperature": 0.4
+        "temperature": 0.3
     }
     
     bot_reply = None
@@ -174,7 +157,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if "choices" in res_json and len(res_json["choices"]) > 0:
             bot_reply = res_json['choices'][0]['message']['content']
         else:
-            data["model"] = "google/gemini-2.0-flash-exp:free"
+            data["model"] = "meta-llama/llama-3.3-70b-instruct:free"
             req2 = await loop.run_in_executor(None, lambda: requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15))
             res_json2 = req2.json()
             if "choices" in res_json2 and len(res_json2["choices"]) > 0:
@@ -182,32 +165,38 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"Error API: {e}")
 
-    # Fallback Cerdas untuk Sapaan & Pertanyaan Topik
+    # FALLBACK CERDAS & LENGKAP
     if not bot_reply:
         t = user_text.lower()
-        if any(k in t for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "apa kabar"]):
-            bot_reply = "Selamat sore! 👋 Selamat datang di FIYYA Official AI Assistant. Ada yang bisa saya bantu terkait platform FIYYA, deposit, atau reward jaringan hari ini?"
-        elif any(k in t for k in ["jaringan", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline"]):
+        if any(k in t for k in ["500", "1000", "node"]):
             bot_reply = (
-                "Bonus & Reward Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
-                "• **Daily Matching Bonus**: Bonus harian dari profit pasif tim downline Anda.\n"
-                "• **Payout Cap**: Batas total pendapatan (Combined Lifetime Payout Cap) meningkat dari 200% hingga 350%.\n"
-                "• **Akselerasi Node Vault**: Node Vault ($500 / $1.000 USDT) memberikan kualifikasi instan ke Rank V4/V5 tanpa jaringan besar dari awal."
+                "Node Vault ($500 / $1.000 USDT):\n\n"
+                "Paket Node Vault seharga $500 atau $1.000 USDT berfungsi untuk memberikan **akselerasi kualifikasi rank V4 atau V5 secara instan** "
+                "tanpa harus memenuhi syarat omzet jaringan tim awal yang besar."
+            )
+        elif any(k in t for k in ["plan", "kontrak", "berapa lama", "durasi", "payout cap"]):
+            bot_reply = (
+                "Sistem Plan & Masa Kontrak FIYYA:\n\n"
+                "Masa kontrak di FIYYA ditentukan berdasarkan **Combined Lifetime Payout Cap** yaitu sebesar **200% hingga 350%** dari total nilai deposit Anda. "
+                "Kontrak dianggap selesai apabila total hasil harian Anda sudah mencapai batas Payout Cap tersebut."
+            )
+        elif any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
+            bot_reply = (
+                "Reward & Hasil Harian FIYYA:\n\n"
+                "• **Target Yield**: 1.5% per hari.\n"
+                "• **Pembagian Profit**: 60% USDT (cair & dapat ditarik langsung) + 40% FIYYA Token (vesting harian 100 hari)."
+            )
+        elif any(k in t for k in ["apa itu", "fiyya itu", "jelaskan", "pengertian"]):
+            bot_reply = (
+                "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) berbasis Agentic OS AI "
+                "yang mengeksekusi selisih harga aset kripto di berbagai exchange global (Binance, OKX, Coinbase, Kraken) secara otomatis."
             )
         elif any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
-            bot_reply = (
-                "Informasi Penarikan (Withdrawal) FIYYA:\n\n"
-                "• **Minimal WD**: 10 USDT\n"
-                "• **Biaya Penarikan (Fee)**: Instant (10%), Simpan >15 Hari (5%), Simpan >30 Hari (3%)."
-            )
+            bot_reply = "Minimal penarikan (WD) di FIYYA adalah 10 USDT dengan biaya berjenjang: Instant (10%), >15 Hari (5%), dan >30 Hari (3%)."
         elif any(k in t for k in ["deposit", "modal", "depo", "vault"]):
-            bot_reply = (
-                "Minimal Deposit FIYYA:\n\n"
-                "• **Staking Vault**: Mulai $100 USDT hingga $10.000 USDT (Target Yield 1.5%/hari).\n"
-                "• **Node Vault**: $500 / $1.000 USDT (Akselerasi Rank V4/V5)."
-            )
+            bot_reply = "Minimal deposit Staking Vault mulai dari $100 USDT, sedangkan Node Vault sebesar $500 / $1.000 USDT."
         else:
-            bot_reply = f"Halo! Silakan beri tahu pertanyaan Anda seputar FIYYA, atau klik tombol '🚀 Register / Join FIYYA' di bawah ini untuk pendaftaran akun resmi:\n\n👉 {REFERRAL_LINK}"
+            bot_reply = f"Silakan beri tahu pertanyaan Anda seputar FIYYA, atau klik tombol '🚀 Register / Join FIYYA' di bawah untuk pendaftaran akun resmi:\n\n👉 {REFERRAL_LINK}"
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
