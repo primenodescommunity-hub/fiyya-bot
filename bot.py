@@ -4,10 +4,24 @@ import re
 import json
 import os
 import asyncio
+import threading
+from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
+# 1. DUMMY WEB SERVER UNTUK MEMUASKAN SYARAT PORT RENDER
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def health_check():
+    return "FIYYA Bot is Running Live!", 200
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    flask_app.run(host="0.0.0.0", port=port)
+
+# 2. KONFIGURASI BOT TELEGRAM
 TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
@@ -164,6 +178,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(clean_reply, reply_markup=get_official_buttons())
 
 def main():
+    # Jalankan server Flask di background thread
+    server_thread = threading.Thread(target=run_flask)
+    server_thread.daemon = True
+    server_thread.start()
+
+    # Jalankan Bot Telegram
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CallbackQueryHandler(handle_register_click, pattern="^btn_register$"))
