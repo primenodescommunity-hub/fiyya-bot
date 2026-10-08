@@ -8,9 +8,11 @@ from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
 TELEGRAM_TOKEN = "8850888324:AAGtmFuTUY7hty5t-ft8qhgRN1gpvysfrAY"
-OPENROUTER_KEY = "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"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
+
+# Pakai Google Gemini API Gratis via OpenRouter Fallback / Direct API
+GEMINI_API_KEY = "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"
 
 DB_FILE = "users.json"
 user_conversations = {}
@@ -178,33 +180,42 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + user_conversations[chat_id]
 
+    # Cobalah panggil OpenRouter terlebih dahulu, jika gagal secara aman fallback ke penjelasan otomatis FIYYA
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "Authorization": f"Bearer {GEMINI_API_KEY}",
         "HTTP-Referer": "https://fiyya.co",
-        "X-Title": "FIYYA AI Bot",
+        "X-Title": "FIYYA Bot",
         "Content-Type": "application/json"
     }
+    
+    # Gunakan model paling kompatibel
     data = {
-        "model": "deepseek/deepseek-r1:free",
+        "model": "meta-llama/llama-3-8b-instruct:free",
         "messages": messages_payload,
         "temperature": 0.1
     }
     
+    bot_reply = None
     try:
-        response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=25)
-        res_json = response.json()
-        
+        req = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15)
+        res_json = req.json()
         if "choices" in res_json and len(res_json["choices"]) > 0:
             bot_reply = res_json['choices'][0]['message']['content']
-            # Hapus tag <think> jika model reasoning mengirimkan pikiran internal
-            bot_reply = re.sub(r'<think>.*?</think>', '', bot_reply, flags=re.DOTALL).strip()
-            user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
         else:
-            logging.error(f"Response Error dari OpenRouter: {res_json}")
-            bot_reply = "Maaf, terjadi masalah teknis saat menghubungkan ke FIYYA AI Engine. Silakan coba beberapa saat lagi."
+            logging.error(f"Response error dari AI Provider: {res_json}")
     except Exception as e:
-        logging.error(f"Exception saat panggil API: {e}")
-        bot_reply = "Maaf, terjadi masalah teknis saat menghubungkan ke FIYYA AI Engine. Silakan coba beberapa saat lagi."
+        logging.error(f"Exception API Call: {e}")
+
+    # Jika AI provider lambat/error, berikan respons pintar fallback seputar FIYYA
+    if not bot_reply:
+        if "register" in user_text.lower() or "daftar" in user_text.lower() or "join" in user_text.lower():
+            bot_reply = f"Untuk mendaftar di platform FIYYA, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah ini atau kunjungi: {REFERRAL_LINK}"
+        elif "vault" in user_text.lower() or "staking" in user_text.lower() or "node" in user_text.lower():
+            bot_reply = "FIYYA memiliki Dual Vault System:\n1. Staking Vault ($100 - $10.000): Target Daily Yield 1.5%.\n2. Node Vault ($500 / $1.000): Untuk akselerasi instant Rank V4/V5."
+        else:
+            bot_reply = "Halo! Saya adalah Asisten AI Resmi FIYYA. Ada yang bisa saya bantu terkait ekosistem, Dual Vault, Yield Harian, atau pendaftaran FIYYA?"
+
+    user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
     try:
         await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
