@@ -91,6 +91,102 @@ def get_official_buttons():
 def clean_markdown(text):
     return re.sub(r'[*_`\[\]()~>#+\-=|{}.!]', '', text)
 
+# 3. HANDLER KHUSUS MEMBER BARU JOIN GRUP (DUKUNGAN 14 BAHASA)
+async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    for member in update.message.new_chat_members:
+        if member.id == context.bot.id:
+            continue
+            
+        first_name = member.first_name
+        lang = (member.language_code or "").lower()
+
+        # 1. INDONESIA (id)
+        if lang.startswith("id"):
+            welcome_text = (
+                f"Selamat datang di Komunitas Resmi FIYYA, {first_name}! 👋🚀\n\n"
+                "Saya adalah Asisten AI FIYYA. Silakan tanyakan apa saja seputar Arbitrase HFT, Staking Vault, Node Vault, maupun Program Market & Strategic Plan V1-V8 langsung di grup ini."
+            )
+        # 2. MELAYU (ms)
+        elif lang.startswith("ms"):
+            welcome_text = (
+                f"Selamat datang ke Komuniti Rasmi FIYYA, {first_name}! 👋🚀\n\n"
+                "Saya ialah Pembantu AI FIYYA. Sila tanya apa sahaja mengenai Arbitraj HFT, Staking Vault, Node Vault, atau Pelan Pasaran & Strategik V1-V8 terus di dalam kumpulan ini."
+            )
+        # 3. JEPANG / JAPANESE (ja)
+        elif lang.startswith("ja"):
+            welcome_text = (
+                f"FIYYA公式コミュニティへようこそ、{first_name}さん！ 👋🚀\n\n"
+                "私はFIYYA AIアシスタントです。HFTアービトラージ、ステーキングヴォルト、ノードヴォルト、マーケット＆戦略プランV1-V8について、このグループでお気軽にご質問ください。"
+            )
+        # 4. KOREA / KOREANESE (ko)
+        elif lang.startswith("ko"):
+            welcome_text = (
+                f"FIYYA 공식 커뮤니티에 오신 것을 환영합니다, {first_name}님! 👋🚀\n\n"
+                "저는 FIYYA AI 어시스턴트입니다. HFT 차익거래, 스테이킹 볼트, 노드 볼트, 마켓 및 전략 플랜 V1-V8에 대해 궁금한 점이 있으시면 이 그룹에서 언제든지 질문해 주세요."
+            )
+        # 5. CINA / CHINESE (zh)
+        elif lang.startswith("zh"):
+            welcome_text = (
+                f"欢迎来到 FIYYA 官方社区，{first_name}！ 👋🚀\n\n"
+                "我是 FIYYA AI 助手。欢迎在本群组中随时咨询有关 HFT 套利、质押金库 (Staking Vault)、节点金库 (Node Vault) 以及市场与战略计划 V1-V8 的任何问题。"
+            )
+        # 6. RUSIA / RUSSIAN (ru)
+        elif lang.startswith("ru"):
+            welcome_text = (
+                f"Добро пожаловать в официальное сообщество FIYYA, {first_name}! 👋🚀\n\n"
+                "Я — ИИ-ассистент FIYYA. Задавайте любые вопросы об арбитраже HFT, Staking Vault, Node Vault, а также о рыночном и стратегическом плане V1-V8 прямо в этой группе."
+            )
+        # 7. PORTUGIS / PORTUGUESE (pt)
+        elif lang.startswith("pt"):
+            welcome_text = (
+                f"Bem-vindo à Comunidade Oficial da FIYYA, {first_name}! 👋🚀\n\n"
+                "Eu sou o Assistente de IA da FIYYA. Sinta-se à vontade para perguntar qualquer coisa sobre Arbitragem HFT, Staking Vault, Node Vault ou o Plano Estratégico e de Mercado V1-V8 diretamente neste grupo."
+            )
+        # 8. HINDI (hi)
+        elif lang.startswith("hi"):
+            welcome_text = (
+                f"FIYYA आधिकारिक समुदाय में आपका स्वागत है, {first_name}! 👋🚀\n\n"
+                "मैं FIYYA AI सहायक हूँ। इस समूह में HFT आर्बिट्राज, स्टेकिंग वॉल्ट, नोड वॉल्ट, या मार्केट और रणनीतिक योजना V1-V8 के बारे में बेझिझक कुछ भी पूछें।"
+            )
+        # 9. THAILAND / THAI (th)
+        elif lang.startswith("th"):
+            welcome_text = (
+                f"ยินดีต้อนรับสู่ชุมชนอย่างเป็นทางการของ FIYYA, {first_name}! 👋🚀\n\n"
+                "ฉันคือผู้ช่วย AI ของ FIYYA สอบถามเกี่ยวกับ HFT Arbitrage, Staking Vault, Node Vault หรือแผนการตลาดและกลยุทธ์ V1-V8 ได้โดยตรงในกลุ่มนี้"
+            )
+        # 10. VIETNAM / VIETNAMESE (vi)
+        elif lang.startswith("vi"):
+            welcome_text = (
+                f"Chào mừng bạn đến với Cộng đồng Chính thức của FIYYA, {first_name}! 👋🚀\n\n"
+                "Tôi là Trợ lý AI của FIYYA. Hãy thoải mái hỏi bất kỳ điều gì về Chênh lệch giá HFT, Staking Vault, Node Vault hoặc Kế hoạch Chiến lược & Thị trường V1-V8 ngay trong nhóm này."
+            )
+        # 11. TAGALOG / FILIPINO (tl / fil)
+        elif lang.startswith("tl") or lang.startswith("fil"):
+            welcome_text = (
+                f"Maligayang pagdating sa Opisyal na Komunidad ng FIYYA, {first_name}! 👋🚀\n\n"
+                "Ako ang FIYYA AI Assistant. Huwag mag-atubiling magtanong tungkol sa HFT Arbitrage, Staking Vault, Node Vault, o ang Market & Strategic Plan V1-V8 nang direkta sa grupong ito."
+            )
+        # 12. ARABIC (ar)
+        elif lang.startswith("ar"):
+            welcome_text = (
+                f"مرحبًا بك في مجتمع FIYYA الرسمي، {first_name}! 👋🚀\n\n"
+                "أنا مساعد الذكاء الاصطناعي لـ FIYYA. لا تتردد في السؤال عن أي شيء يتعلق بالتحكيم HFT، أو Staking Vault، أو Node Vault، أو خطة السوق والاستراتيجية V1-V8 مباشرة في هذه المجموعة."
+            )
+        # 13. PRANCIS / FRENCH (fr)
+        elif lang.startswith("fr"):
+            welcome_text = (
+                f"Bienvenue dans la communauté officielle de FIYYA, {first_name} ! 👋🚀\n\n"
+                "Je suis l'assistant IA de FIYYA. N'hésitez pas à poser vos questions sur l'arbitrage HFT, le Staking Vault, le Node Vault ou le plan stratégique et de marché V1-V8 directement dans ce groupe."
+            )
+        # 14. INGGRIS / ENGLISH & LAINNYA (en / Global Default)
+        else:
+            welcome_text = (
+                f"Welcome to the Official FIYYA Community, {first_name}! 👋🚀\n\n"
+                "I am the FIYYA AI Assistant. Feel free to ask anything about HFT Arbitrage, Staking Vaults, Node Vaults, or the Market & Strategic Plan V1-V8 directly in this group."
+            )
+
+        await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     save_user(chat_id)
@@ -107,12 +203,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     save_user(chat_id)
     raw_text = update.message.text
-    # bersihkan karakter khusus agar pencarian keyword akurat
     t = re.sub(r'[^a-zA-Z0-9\s]', ' ', raw_text.lower()).strip()
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    # 1. PRIO UTAMA INSTAN: JIKA MINTA WHITEPAPER / PDF (LANGSUNG KIRIM DOKUMEN VIA FILE_ID)
+    # 1. PRIO UTAMA INSTAN: JIKA MINTA WHITEPAPER / PDF
     if any(k in t for k in ["whitepaper", "paper", "pdf", "dokumen", "dokumem"]):
         caption_text = (
             "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
@@ -129,7 +224,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logging.error(f"Gagal kirim PDF: {e}")
 
-    # 2. PRIO KEDUA INSTAN: SAPAAN BIASA (TANPA PERTANYAAN MATERI)
+    # 2. PRIO KEDUA INSTAN: SAPAAN BIASA
     is_greeting = any(re.search(r'\b' + re.escape(k) + r'\b', t) for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"])
     is_query = any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya", "vault", "bunga", "profit", "sistem", "cara"])
     
@@ -228,6 +323,7 @@ def main():
 
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot FIYYA AI Ready!")
     app.run_polling(drop_pending_updates=True)
