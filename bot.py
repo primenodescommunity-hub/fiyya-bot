@@ -180,20 +180,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "HTTP-Referer": "https://fiyya.co",
+        "X-Title": "FIYYA AI Bot",
         "Content-Type": "application/json"
     }
     data = {
-        "model": "meta-llama/llama-3-8b-instruct:free",
+        "model": "deepseek/deepseek-r1:free",
         "messages": messages_payload,
         "temperature": 0.1
     }
     
     try:
-        res = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=20).json()
-        bot_reply = res['choices'][0]['message']['content']
-        user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=25)
+        res_json = response.json()
+        
+        if "choices" in res_json and len(res_json["choices"]) > 0:
+            bot_reply = res_json['choices'][0]['message']['content']
+            # Hapus tag <think> jika model reasoning mengirimkan pikiran internal
+            bot_reply = re.sub(r'<think>.*?</think>', '', bot_reply, flags=re.DOTALL).strip()
+            user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
+        else:
+            logging.error(f"Response Error dari OpenRouter: {res_json}")
+            bot_reply = "Maaf, terjadi masalah teknis saat menghubungkan ke FIYYA AI Engine. Silakan coba beberapa saat lagi."
     except Exception as e:
-        logging.error(f"Error OpenRouter API: {e}")
+        logging.error(f"Exception saat panggil API: {e}")
         bot_reply = "Maaf, terjadi masalah teknis saat menghubungkan ke FIYYA AI Engine. Silakan coba beberapa saat lagi."
 
     try:
