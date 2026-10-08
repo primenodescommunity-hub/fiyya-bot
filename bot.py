@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
 
-# 1. DUMMY WEB SERVER UNTUK RENDER
+# 1. DUMMY WEB SERVER UNTUK RENDER PORT 10000
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
@@ -79,7 +79,7 @@ DATABASE PENGETAHUAN RESMI FIYYA:
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# TOMBOL RESMI (TIPE DIRECT URL AGAR LANGSUNG KEBUKA)
+# TOMBOL RESMI (DIRECT URL LINK - BEBAS CRASH)
 def get_official_buttons():
     keyboard = [[InlineKeyboardButton("🚀 Register / Join FIYYA", url=REFERRAL_LINK)]]
     return InlineKeyboardMarkup(keyboard)
@@ -145,7 +145,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     bot_reply = None
     
-    # 3. PANGGIL LLM API VIA HTTPX ASYNC
+    # 3. PANGGIL LLM API
     async with httpx.AsyncClient(timeout=10.0) as client_http:
         for model in models_to_try:
             try:
