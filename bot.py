@@ -21,9 +21,13 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     flask_app.run(host="0.0.0.0", port=port)
 
-# 2. KONFIGURASI BOT TELEGRAM & OPENROUTER
+# 2. KONFIGURASI BOT TELEGRAM & FILE ID DOKUMEN
 TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
+
+# FILE_ID RESMI WHITEPAPER PDF
+WHITEPAPER_FILE_ID = "BQACAgUAAxkBAAEviX1qx3V07WaYsErlOJImg2hYPDkHRgAC6SMAAgLcOVZOP909CN2LEz0E"
+
 ADMIN_TELEGRAM_ID = 8870805553
 OPENROUTER_KEY = "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"
 
@@ -57,9 +61,10 @@ Jawab pertanyaan pengguna secara cerdas, profesional, ramah, dan teliti dalam ba
 
 ATURAN PERILAKU WAJIB:
 1. SAPAAN RAMAH: Setiap kali pengguna menyapa (Halo, Pagi/Sore/Malam, Hai, dsb), WAJIB membalas ramah terlebih dahulu.
-2. RESPON RINCI: Jika pengguna menanyakan tentang bonus jaringan/pengembangan tim, berikan rincian Career Matrix V1-V8, Daily Matching Bonus, dan Payout Cap secara detail.
-3. PENDAFTARAN: Arahkan pengguna untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan cara mendaftar/buat akun.
-4. BATASAN: Dilarang keras membahas agama, syariah, atau topik di luar ekosistem FIYYA.
+2. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan bahwa dokumen resmi memuat arsitektur HFT Agentic OS, Dual Vault, Career Matrix, dan Tokenomics, lalu informasikan bahwa file PDF telah dikirimkan secara langsung.
+3. RESPON RINCI JARINGAN: Jika pengguna menanyakan tentang bonus jaringan/pengembangan tim, berikan rincian Career Matrix V1-V8, Daily Matching Bonus, dan Payout Cap secara detail.
+4. PENDAFTARAN: Arahkan pengguna untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan cara mendaftar/buat akun.
+5. BATASAN: Dilarang keras membahas agama, syariah, atau topik di luar ekosistem FIYYA.
 
 DATABASE PENGETAHUAN RESMI FIYYA:
 - **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI yang terhubung via WebSocket ke exchange global (Binance, OKX, Coinbase, Kraken).
@@ -79,7 +84,6 @@ DATABASE PENGETAHUAN RESMI FIYYA:
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# TOMBOL RESMI (DIRECT URL LINK - BEBAS CRASH)
 def get_official_buttons():
     keyboard = [[InlineKeyboardButton("🚀 Register / Join FIYYA", url=REFERRAL_LINK)]]
     return InlineKeyboardMarkup(keyboard)
@@ -95,7 +99,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "Halo! Selamat datang di FIYYA Official AI Assistant. 👋\n\n"
         "Saya adalah asisten virtual resmi untuk platform FIYYA.\n"
-        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, reward, plan, atau penarikan?"
+        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, reward, plan, whitepaper, atau penarikan?"
     )
     await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
@@ -106,6 +110,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     t = user_text.lower().strip()
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+
+    # DETEKSI APAKAH USER MEMINTA WHITEPAPER/PDF
+    is_asking_whitepaper = any(k in t for k in ["whitepaper", "white paper", "pdf", "dokumen", "paper"])
 
     # 1. HANDLING SAPAAN INSTAN
     if any(k in t for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"]):
@@ -164,15 +171,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error model {model}: {e}")
                 continue
 
-    # 4. FALLBACK FLEKSIBEL (DETEKSI TYPO "JARINGAM", "BONOS", DLSB)
+    # 4. FALLBACK FLEKSIBEL
     if not bot_reply:
-        if any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
+        if is_asking_whitepaper:
+            bot_reply = (
+                "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
+                "Berikut adalah dokumen resmi Whitepaper FIYYA yang memuat rincian arsitektur HFT berbasis Agentic OS AI, skema Dual Vault, Career Matrix (V1-V8), hingga spesifikasi Tokenomics BEP-20."
+            )
+        elif any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
             bot_reply = (
                 "Rincian Bonus & Program Pengembangan Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
-                "1. **Daily Matching Bonus**: Anda menerima bonus persentase harian yang dihitung dari hasil profit pasif tim/downline Anda.\n"
-                "2. **Peningkatan Payout Cap (200% - 350%)**: Batas maksimal total pendapatan Anda terus naik seiring meningkatnya rank karir (V1 ke V8).\n"
+                "1. **Daily Matching Bonus**: Bonus persentase harian dari profit pasif tim downline Anda.\n"
+                "2. **Peningkatan Payout Cap (200% - 350%)**: Batas maksimal total pendapatan Anda naik seiring kenaikan rank.\n"
                 "3. **Kualifikasi Rank (V1-V8)**: Dicapai berdasarkan akumulasi total omzet Staking Vault tim jaringan Anda.\n"
-                "4. **Node Vault Pass ($500 / $1.000 USDT)**: Memungkinkan Anda meraih kualifikasi instan ke Rank V4/V5 tanpa harus mengumpulkan omzet jaringan besar dari awal."
+                "4. **Node Vault Pass ($500 / $1.000 USDT)**: Akselerasi kualifikasi instan ke Rank V4/V5."
             )
         elif any(k in t for k in ["500", "1000", "node"]):
             bot_reply = "Node Vault ($500 / $1.000 USDT) adalah paket partisipasi khusus untuk memberikan **akselerasi kualifikasi rank V4 atau V5 secara instan** tanpa harus membangun omzet tim awal yang besar."
@@ -191,6 +203,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
+    # JIKA USER MEMINTA WHITEPAPER, BOT MENGIRIMKAN FILE PDF
+    if is_asking_whitepaper:
+        try:
+            await context.bot.send_document(
+                chat_id=chat_id,
+                document=WHITEPAPER_FILE_ID,
+                caption=bot_reply,
+                reply_markup=get_official_buttons()
+            )
+            return
+        except Exception as e:
+            logging.error(f"Gagal kirim PDF via file_id: {e}")
+
+    # JIKA BUKAN MEMINTA WHITEPAPER, KIRIM TEKS BIASA
     try:
         await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
     except Exception:
