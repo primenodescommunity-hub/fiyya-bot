@@ -209,9 +209,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not bot_reply:
         bot_reply = (
             "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI. "
-            "Minimal deposit Staking Vault mulai dari $100 USDT (Target yield 1.5%/hari).\n\n"
+            "Minimal deposit Staking Vault mulai dari $100 USDT (Target yield 1.5% per hari).\n\n"
             f"Untuk pendaftaran akun resmi, silakan klik tombol di bawah ini:\n👉 {REFERRAL_LINK}"
         )
+
+    # Dapatkan jawaban bersih dari AI dan cegah kemunculan command '/hari' secara otomatis
+    bot_reply = re.sub(r'/hari', 'per hari', bot_reply, flags=re.IGNORECASE)
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
