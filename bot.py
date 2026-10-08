@@ -10,18 +10,18 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
-# 1. DUMMY WEB SERVER UNTUK MEMUASKAN SYARAT PORT RENDER
+# 1. DUMMY WEB SERVER UNTUK RENDER (MEMENUHI SYARAT PORT 10000)
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def health_check():
-    return "FIYYA Bot is Running Live!", 200
+    return "FIYYA Official AI Bot is Online & Running!", 200
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     flask_app.run(host="0.0.0.0", port=port)
 
-# 2. KONFIGURASI BOT TELEGRAM
+# 2. KONFIGURASI BOT & KREDENSIAL
 TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
@@ -50,24 +50,45 @@ def save_user(chat_id):
         except Exception as e:
             logging.error(f"Error save user: {e}")
 
+# KNOWLEDGE BASE LENGKAP FIYYA (SESUAI WHITEPAPER RESMI)
 SYSTEM_PROMPT = f"""
-PERAN & INSTRUKSI UTAMA:
-Kamu adalah Asisten AI Pintar dan Resmi untuk platform FIYYA ({REFERRAL_LINK}).
-Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, dll) dengan nada profesional, ramah, dan pintar.
+PERAN & KONTROL UTAMA:
+Kamu adalah Asisten AI Resmi & Pintar untuk platform FIYYA ({REFERRAL_LINK}).
+Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, Mandarin, dll) dengan nada profesional, akurat, dan sangat pintar.
 
-ATURAN KETAT:
-1. PINTAR & KONTEKSUAL: Pahami maksud pertanyaan user secara alami (misal "minimal wd", "berapa modalnya", "cara kerja", "FIYYA itu apa").
-2. HANYA TOPIK FIYYA: Jika ditanya di luar topik FIYYA, tolak dengan sopan.
-3. DILARANG MENYEBUTKAN SYARIAH ATAU KEUTAMAAN AGAMA.
-4. PENDAFTARAN: Arahkan user untuk menekan tombol '🚀 Register / Join FIYYA' di bawah jika menanyakan cara mendaftar/buat akun.
+ATURAN UTAMA:
+1. RESPON KONTEKSUAL & CERDAS: Jawab pertanyaan user dengan presisi tinggi berdasarkan seluruh data resmi FIYYA di bawah ini.
+2. PENDAFTARAN: Jika pengguna menanyakan cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
+3. BATASAN: Dilarang keras menyebutkan syariah, agama, atau hal-hal di luar ekosistem FIYYA.
 
-DATA PENGETAHUAN RESMI FIYYA (WHITEPAPER V.01.0.3):
-- Platform: FIYYA (Arbitrase High-Frequency Trading / HFT berbasis Agentic OS AI).
-- Daily Yield / Reward: Target 1.5% per hari.
-- Profit Split Harian: 60% USDT cair (bisa ditarik kapan saja) & 40% FIYYA token (vesting harian 100 hari).
-- Dual Vault: Staking Vault ($100-$10.000 USDT) dan Node Vault ($500 / $1.000 USDT untuk akselerasi rank V4/V5 instan).
-- Penarikan Dana (Withdrawal / WD): Minimal WD adalah 10 USDT. Biaya (Fee): Instant (10%), Simpan >15 Hari (5%), Simpan >30 Hari (3%).
-- Career Matrix: Rank V1 hingga V8 dengan bonus matching harian dari profit downline.
+DATABASE PENGETAHUAN LENGKAP FIYYA (WHITEPAPER V.01.0.3):
+1. **Definisi Platform**:
+   - FIYYA adalah platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI.
+   - Terhubung secara real-time via infrastruktur WebSocket sub-milidetik ke exchange global utama (Binance, OKX, Coinbase, Kraken).
+
+2. **Target Yield & Profit Split Harian**:
+   - Target Daily Yield Personal: **1.5% per hari**.
+   - Pembagian Hasil (Profit Split): **60% USDT** (cair & dapat ditarik kapan saja) + **40% FIYYA Token** (vesting harian selama 100 hari).
+
+3. **Sistem Dual Vault**:
+   - **Staking Vault**: Modal partisipasi mulai dari **$100 USDT** hingga $10.000 USDT untuk mendapatkan yield pasif harian.
+   - **Node Vault**: Nominal partisipasi $500 atau $1.000 USDT. Memberikan akselerasi kualifikasi instan ke Rank V4/V5 tanpa memerlukan struktur jaringan awal yang besar.
+
+4. **Reward & Bonus Jaringan (Career Matrix V1 - V8)**:
+   - Memiliki jenjang karir V1 hingga V8 berdasarkan akumulasi omzet tim downline.
+   - **Daily Matching Bonus**: Mendapatkan persentase bonus harian dari hasil profit harian jaringan downline.
+   - **Combined Lifetime Payout Cap**: Batas maksimal total pendapatan berjenjang mulai dari **200% hingga 350%** dari total deposit sebelum harus melakukan top-up/re-stake.
+
+5. **Ketentuan Penarikan (Withdrawal / WD)**:
+   - **Minimal Penarikan (Minimal WD)**: **10 USDT**.
+   - **Biaya Penarikan (Withdrawal Fee)** berjenjang berdasarkan lama masa simpan:
+     * Instant / Langsung Penarikan: Biaya 10%
+     * Setelah 15 Hari Masa Simpan: Biaya 5%
+     * Setelah 30 Hari Masa Simpan: Biaya 3%
+
+6. **Tokenomics (FIYYA Token)**:
+   - Total Supply: 1.000.000.000 (1 Miliar) Token BEP-20 di BNB Chain.
+   - Initial Listing / DEX Price: $0.01 USD per token.
 """
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -111,7 +132,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "Selamat datang di FIYYA Official AI Assistant.\n\n"
         "Saya adalah asisten virtual resmi untuk platform FIYYA.\n"
-        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, atau ekosistem FIYYA?"
+        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, reward jaringan, atau penarikan?"
     )
     await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
@@ -160,14 +181,32 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"Error API: {e}")
 
+    # Fallback Komprehensif Berdasarkan Seluruh Sumber Data FIYYA
     if not bot_reply:
         t = user_text.lower()
-        if any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
-            bot_reply = "Minimal penarikan (WD) di FIYYA adalah 10 USDT dengan biaya berjenjang: Instant (10%), 15 Hari (5%), dan 30 Hari (3%)."
-        elif any(k in t for k in ["deposit", "modal", "depo"]):
-            bot_reply = "Minimal deposit Staking Vault di FIYYA mulai dari $100 USDT, sedangkan Node Vault mulai dari $500 / $1.000 USDT."
+        if any(k in t for k in ["jaringan", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline"]):
+            bot_reply = (
+                "Bonus & Reward Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
+                "• **Daily Matching Bonus**: Bonus harian dari profit pasif tim downline Anda.\n"
+                "• **Payout Cap**: Batas total pendapatan (Combined Lifetime Payout Cap) meningkat dari 200% hingga 350%.\n"
+                "• **Akselerasi Node Vault**: Node Vault ($500 / $1.000 USDT) memberikan kualifikasi instan ke Rank V4/V5 tanpa jaringan besar dari awal."
+            )
+        elif any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
+            bot_reply = (
+                "Informasi Penarikan (Withdrawal) FIYYA:\n\n"
+                "• **Minimal WD**: 10 USDT\n"
+                "• **Biaya Penarikan (Fee)**: Instant (10%), Simpan >15 Hari (5%), Simpan >30 Hari (3%)."
+            )
+        elif any(k in t for k in ["deposit", "modal", "depo", "vault"]):
+            bot_reply = (
+                "Minimal Deposit FIYYA:\n\n"
+                "• **Staking Vault**: Mulai $100 USDT hingga $10.000 USDT (Target Yield 1.5%/hari).\n"
+                "• **Node Vault**: $500 / $1.000 USDT (Akselerasi Rank V4/V5)."
+            )
+        elif any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
+            bot_reply = "Target Daily Yield FIYYA adalah 1.5% per hari dengan pembagian profit 60% USDT cair dan 40% FIYYA Token (vesting harian 100 hari)."
         else:
-            bot_reply = f"Untuk informasi pendaftaran akun resmi FIYYA, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah atau via link: {REFERRAL_LINK}"
+            bot_reply = f"Untuk pendaftaran akun resmi FIYYA atau informasi selengkapnya, silakan klik tombol '🚀 Register / Join FIYYA' di bawah atau via link: {REFERRAL_LINK}"
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
@@ -178,12 +217,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(clean_reply, reply_markup=get_official_buttons())
 
 def main():
-    # Jalankan server Flask di background thread
     server_thread = threading.Thread(target=run_flask)
     server_thread.daemon = True
     server_thread.start()
 
-    # Jalankan Bot Telegram
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CallbackQueryHandler(handle_register_click, pattern="^btn_register$"))
