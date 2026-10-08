@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
-TELEGRAM_TOKEN = "8850888324:AAGtmFuTUY7hty5t-ft8qhgRN1gpvysfrAY"
+TELEGRAM_TOKEN = "8850888324:AAEkSpC--QlIYLr3BLzG1YH01meV7LQmr_U"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
 
