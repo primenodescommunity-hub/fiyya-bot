@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
-# 1. DUMMY WEB SERVER UNTUK RENDER (MEMENUHI SYARAT PORT 10000)
+# 1. DUMMY WEB SERVER UNTUK RENDER
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
@@ -50,16 +50,17 @@ def save_user(chat_id):
         except Exception as e:
             logging.error(f"Error save user: {e}")
 
-# KNOWLEDGE BASE LENGKAP FIYYA (SESUAI WHITEPAPER RESMI)
+# KNOWLEDGE BASE LENGKAP + RAMAH SAPAAN
 SYSTEM_PROMPT = f"""
 PERAN & KONTROL UTAMA:
 Kamu adalah Asisten AI Resmi & Pintar untuk platform FIYYA ({REFERRAL_LINK}).
-Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, Mandarin, dll) dengan nada profesional, akurat, dan sangat pintar.
+Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, Mandarin, dll) dengan nada yang ramah, sopan, profesional, dan pintar.
 
-ATURAN UTAMA:
-1. RESPON KONTEKSUAL & CERDAS: Jawab pertanyaan user dengan presisi tinggi berdasarkan seluruh data resmi FIYYA di bawah ini.
-2. PENDAFTARAN: Jika pengguna menanyakan cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
-3. BATASAN: Dilarang keras menyebutkan syariah, agama, atau hal-hal di luar ekosistem FIYYA.
+ATURAN PERILAKU:
+1. KESOPANAN & SAPAAN: Jika pengguna mengucapkan sapaan (seperti "Selamat pagi/siang/sore/malam", "Halo", "Apa kabar", "Konnichiwa", dll), Sapa balik dengan sangat ramah dan tanyakan apa yang bisa dibantu terkait FIYYA.
+2. RESPON KONTEKSUAL: Jawab pertanyaan user dengan presisi tinggi berdasarkan seluruh data resmi FIYYA di bawah ini.
+3. PENDAFTARAN: Jika pengguna menanyakan cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
+4. BATASAN: Dilarang keras menyebutkan syariah, agama, atau hal-hal di luar ekosistem FIYYA.
 
 DATABASE PENGETAHUAN LENGKAP FIYYA (WHITEPAPER V.01.0.3):
 1. **Definisi Platform**:
@@ -162,7 +163,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = {
         "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
         "messages": messages_payload,
-        "temperature": 0.3
+        "temperature": 0.4
     }
     
     bot_reply = None
@@ -181,10 +182,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"Error API: {e}")
 
-    # Fallback Komprehensif Berdasarkan Seluruh Sumber Data FIYYA
+    # Fallback Cerdas untuk Sapaan & Pertanyaan Topik
     if not bot_reply:
         t = user_text.lower()
-        if any(k in t for k in ["jaringan", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline"]):
+        if any(k in t for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "apa kabar"]):
+            bot_reply = "Selamat sore! 👋 Selamat datang di FIYYA Official AI Assistant. Ada yang bisa saya bantu terkait platform FIYYA, deposit, atau reward jaringan hari ini?"
+        elif any(k in t for k in ["jaringan", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline"]):
             bot_reply = (
                 "Bonus & Reward Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
                 "• **Daily Matching Bonus**: Bonus harian dari profit pasif tim downline Anda.\n"
@@ -203,10 +206,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "• **Staking Vault**: Mulai $100 USDT hingga $10.000 USDT (Target Yield 1.5%/hari).\n"
                 "• **Node Vault**: $500 / $1.000 USDT (Akselerasi Rank V4/V5)."
             )
-        elif any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
-            bot_reply = "Target Daily Yield FIYYA adalah 1.5% per hari dengan pembagian profit 60% USDT cair dan 40% FIYYA Token (vesting harian 100 hari)."
         else:
-            bot_reply = f"Untuk pendaftaran akun resmi FIYYA atau informasi selengkapnya, silakan klik tombol '🚀 Register / Join FIYYA' di bawah atau via link: {REFERRAL_LINK}"
+            bot_reply = f"Halo! Silakan beri tahu pertanyaan Anda seputar FIYYA, atau klik tombol '🚀 Register / Join FIYYA' di bawah ini untuk pendaftaran akun resmi:\n\n👉 {REFERRAL_LINK}"
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
