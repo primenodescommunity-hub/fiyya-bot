@@ -111,11 +111,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    # DETEKSI APAKAH USER MEMINTA WHITEPAPER/PDF
+    # 1. PRIORITAS UTAMA: DOKUMEN / WHITEPAPER (DIAMBIL DULUAN)
     is_asking_whitepaper = any(k in t for k in ["whitepaper", "white paper", "pdf", "dokumen", "paper"])
+    if is_asking_whitepaper:
+        caption_text = (
+            "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
+            "Berikut adalah dokumen resmi Whitepaper FIYYA yang memuat rincian arsitektur HFT berbasis Agentic OS AI, skema Dual Vault, Career Matrix (V1-V8), hingga spesifikasi Tokenomics BEP-20."
+        )
+        try:
+            await context.bot.send_document(
+                chat_id=chat_id,
+                document=WHITEPAPER_FILE_ID,
+                caption=caption_text,
+                reply_markup=get_official_buttons()
+            )
+            return
+        except Exception as e:
+            logging.error(f"Gagal kirim PDF: {e}")
 
-    # 1. HANDLING SAPAAN INSTAN
-    if any(k in t for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"]):
+    # 2. HANDLING SAPAAN HANYA JIKA TIDAK MEMINTA WHITEPAPER (DENGAN BOUNDARY CHECK)
+    is_greeting = any(re.search(r'\b' + re.escape(k) + r'\b', t) for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"])
+    if is_greeting and not any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya"]):
         if "pagi" in t: sapaan = "Selamat pagi!"
         elif "siang" in t: sapaan = "Selamat siang!"
         elif "malam" in t: sapaan = "Selamat malam!"
@@ -127,7 +143,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
         return
 
-    # 2. MEMORI PERCAKAPAN
+    # 3. MEMORI PERCAKAPAN & PANGGILAN LLM API
     if chat_id not in user_conversations:
         user_conversations[chat_id] = []
 
@@ -152,7 +168,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     bot_reply = None
     
-    # 3. PANGGIL LLM API
     async with httpx.AsyncClient(timeout=10.0) as client_http:
         for model in models_to_try:
             try:
@@ -171,14 +186,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error model {model}: {e}")
                 continue
 
-    # 4. FALLBACK FLEKSIBEL
+    # 4. FALLBACK FLEKSIBEL JIKA API OVERLOAD
     if not bot_reply:
-        if is_asking_whitepaper:
-            bot_reply = (
-                "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
-                "Berikut adalah dokumen resmi Whitepaper FIYYA yang memuat rincian arsitektur HFT berbasis Agentic OS AI, skema Dual Vault, Career Matrix (V1-V8), hingga spesifikasi Tokenomics BEP-20."
-            )
-        elif any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
+        if any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
             bot_reply = (
                 "Rincian Bonus & Program Pengembangan Jaringan FIYYA (Career Matrix V1 - V8):\n\n"
                 "1. **Daily Matching Bonus**: Bonus persentase harian dari profit pasif tim downline Anda.\n"
@@ -203,20 +213,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
-    # JIKA USER MEMINTA WHITEPAPER, BOT MENGIRIMKAN FILE PDF
-    if is_asking_whitepaper:
-        try:
-            await context.bot.send_document(
-                chat_id=chat_id,
-                document=WHITEPAPER_FILE_ID,
-                caption=bot_reply,
-                reply_markup=get_official_buttons()
-            )
-            return
-        except Exception as e:
-            logging.error(f"Gagal kirim PDF via file_id: {e}")
-
-    # JIKA BUKAN MEMINTA WHITEPAPER, KIRIM TEKS BIASA
     try:
         await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
     except Exception:
