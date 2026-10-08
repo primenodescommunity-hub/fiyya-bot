@@ -8,7 +8,7 @@ from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
 TELEGRAM_TOKEN = "8850888324:AAGtmFuTUY7hty5t-ft8qhgRN1gpvysfrAY"
-OPENROUTER_KEY = "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"
+OPENROUTER_KEY = "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"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
 
@@ -183,7 +183,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "meta-llama/llama-3.3-70b-instruct",
+        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
         "messages": messages_payload,
         "temperature": 0.1
     }
