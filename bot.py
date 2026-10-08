@@ -183,7 +183,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+        "model": "meta-llama/llama-3-8b-instruct:free",
         "messages": messages_payload,
         "temperature": 0.1
     }
