@@ -3,6 +3,7 @@ import requests
 import re
 import json
 import os
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
@@ -11,7 +12,6 @@ TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
 
-# Kita pakai OpenRouter Router khusus Gemini / Direct Gemini
 OPENROUTER_KEY = "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"
 
 DB_FILE = "users.json"
@@ -124,7 +124,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Content-Type": "application/json"
     }
     
-    # Memakai model Google Gemini 2.0 Flash Lite via OpenRouter (Anti-fail & Sangat Pintar)
     data = {
         "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
         "messages": messages_payload,
@@ -133,21 +132,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     bot_reply = None
     try:
-        req = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15)
+        loop = asyncio.get_event_loop()
+        req = await loop.run_in_executor(None, lambda: requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15))
         res_json = req.json()
         if "choices" in res_json and len(res_json["choices"]) > 0:
             bot_reply = res_json['choices'][0]['message']['content']
         else:
-            # Backup ke Gemini Flash Standard jika Lite sibuk
             data["model"] = "google/gemini-2.0-flash-exp:free"
-            req2 = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15)
+            req2 = await loop.run_in_executor(None, lambda: requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15))
             res_json2 = req2.json()
             if "choices" in res_json2 and len(res_json2["choices"]) > 0:
                 bot_reply = res_json2['choices'][0]['message']['content']
     except Exception as e:
         logging.error(f"Error API: {e}")
 
-    # Fallback darurat jika koneksi internet terputus total
     if not bot_reply:
         t = user_text.lower()
         if any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
@@ -165,10 +163,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         clean_reply = clean_markdown(bot_reply)
         await update.message.reply_text(clean_reply, reply_markup=get_official_buttons())
 
-if __name__ == '__main__':
+def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CallbackQueryHandler(handle_register_click, pattern="^btn_register$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot FIYYA AI Ready!")
-    app.run_polling()
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == '__main__':
+    main()
