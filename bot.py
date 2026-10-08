@@ -8,9 +8,11 @@ from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
 TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
-OPENROUTER_KEY = "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"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
+
+# Kita pakai OpenRouter Router khusus Gemini / Direct Gemini
+OPENROUTER_KEY = "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"
 
 DB_FILE = "users.json"
 user_conversations = {}
@@ -35,24 +37,23 @@ def save_user(chat_id):
             logging.error(f"Error save user: {e}")
 
 SYSTEM_PROMPT = f"""
-PERAN & KONTROL:
-Kamu adalah Asisten AI Resmi untuk platform FIYYA ({REFERRAL_LINK}). Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis.
+PERAN & INSTRUKSI UTAMA:
+Kamu adalah Asisten AI Pintar dan Resmi untuk platform FIYYA ({REFERRAL_LINK}).
+Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis (Indonesia, Jepang, Inggris, dll) dengan nada profesional, ramah, dan pintar.
 
-ATURAN UTAMA:
-1. HANYA JAWAB TOPIK FIYYA: Kamu hanya melayani pertanyaan seputar ekosistem, teknologi HFT arbitrase, Dual Vault, Yield, dan platform FIYYA.
-2. PENDAFTARAN: Jika user bertanya cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
+ATURAN KETAT:
+1. PINTAR & KONTEKSUAL: Pahami maksud pertanyaan user secara alami (misal "minimal wd", "berapa modalnya", "cara kerja", "FIYYA itu apa").
+2. HANYA TOPIK FIYYA: Jika ditanya di luar topik FIYYA, tolak dengan sopan.
 3. DILARANG MENYEBUTKAN SYARIAH ATAU KEUTAMAAN AGAMA.
-4. FORMATTING: Jawab singkat, padat, ramah, dan profesional.
+4. PENDAFTARAN: Arahkan user untuk menekan tombol '🚀 Register / Join FIYYA' di bawah jika menanyakan cara mendaftar/buat akun.
 
-DATA RESMI FIYYA (WHITEPAPER V.01.0.3):
-- Definisi FIYYA: Platform arbitrase high-frequency trading (HFT) institusional berbasis Agentic OS AI.
-- Target Daily Yield / Reward: 1.5% per hari.
+DATA PENGETAHUAN RESMI FIYYA (WHITEPAPER V.01.0.3):
+- Platform: FIYYA (Arbitrase High-Frequency Trading / HFT berbasis Agentic OS AI).
+- Daily Yield / Reward: Target 1.5% per hari.
 - Profit Split Harian: 60% USDT cair (bisa ditarik kapan saja) & 40% FIYYA token (vesting harian 100 hari).
 - Dual Vault: Staking Vault ($100-$10.000 USDT) dan Node Vault ($500 / $1.000 USDT untuk akselerasi rank V4/V5 instan).
-- Combined Lifetime Payout Cap: Batas total penghasilan 200% sampai 350% tergantung referral.
-- Biaya Penarikan (Withdrawal Fee): Instant (10%), 15 Hari (5%), 30 Hari (3%).
+- Penarikan Dana (Withdrawal / WD): Minimal WD adalah 10 USDT. Biaya (Fee): Instant (10%), Simpan >15 Hari (5%), Simpan >30 Hari (3%).
 - Career Matrix: Rank V1 hingga V8 dengan bonus matching harian dari profit downline.
-- Tokenomics: 1 Miliar total supply BEP-20 di BNB Chain, harga DEX $0.01 USD.
 """
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -111,7 +112,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_conversations[chat_id] = []
 
     user_conversations[chat_id].append({"role": "user", "content": user_text})
-
     if len(user_conversations[chat_id]) > 6:
         user_conversations[chat_id] = user_conversations[chat_id][-6:]
 
@@ -124,35 +124,38 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Content-Type": "application/json"
     }
     
+    # Memakai model Google Gemini 2.0 Flash Lite via OpenRouter (Anti-fail & Sangat Pintar)
     data = {
-        "model": "qwen/qwen-2.5-7b-instruct:free",
+        "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
         "messages": messages_payload,
         "temperature": 0.3
     }
     
     bot_reply = None
     try:
-        req = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=20)
+        req = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15)
         res_json = req.json()
         if "choices" in res_json and len(res_json["choices"]) > 0:
             bot_reply = res_json['choices'][0]['message']['content']
         else:
-            data["model"] = "meta-llama/llama-3.3-70b-instruct:free"
-            req2 = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=20)
+            # Backup ke Gemini Flash Standard jika Lite sibuk
+            data["model"] = "google/gemini-2.0-flash-exp:free"
+            req2 = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=15)
             res_json2 = req2.json()
             if "choices" in res_json2 and len(res_json2["choices"]) > 0:
                 bot_reply = res_json2['choices'][0]['message']['content']
     except Exception as e:
-        logging.error(f"Error AI API: {e}")
+        logging.error(f"Error API: {e}")
 
+    # Fallback darurat jika koneksi internet terputus total
     if not bot_reply:
         t = user_text.lower()
-        if any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
-            bot_reply = "Target Daily Yield FIYYA adalah 1.5% per hari dengan pembagian profit 60% USDT cair dan 40% FIYYA Token (vesting 100 hari)."
-        elif any(k in t for k in ["deposit", "modal", "minimal"]):
-            bot_reply = "Minimal deposit di FIYYA:\n• Staking Vault: Mulai $100 USDT (Target Yield 1.5%/hari).\n• Node Vault: Mulai $500 / $1.000 USDT."
+        if any(k in t for k in ["wd", "withdraw", "penarikan", "tarik"]):
+            bot_reply = "Minimal penarikan (WD) di FIYYA adalah 10 USDT dengan biaya berjenjang: Instant (10%), 15 Hari (5%), dan 30 Hari (3%)."
+        elif any(k in t for k in ["deposit", "modal", "depo"]):
+            bot_reply = "Minimal deposit Staking Vault di FIYYA mulai dari $100 USDT, sedangkan Node Vault mulai dari $500 / $1.000 USDT."
         else:
-            bot_reply = f"Untuk informasi selengkapnya atau pendaftaran akun resmi FIYYA, silakan klik tombol '🚀 Register / Join FIYYA' di bawah ini atau kunjungi link berikut:\n\n👉 {REFERRAL_LINK}"
+            bot_reply = f"Untuk informasi pendaftaran akun resmi FIYYA, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah atau via link: {REFERRAL_LINK}"
 
     user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
 
