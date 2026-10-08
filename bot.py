@@ -58,30 +58,35 @@ def save_user(chat_id):
 
 
 # ==========================================
-# 3. KNOWLEDGE BASE & SYSTEM PROMPT CERDAS
+# 3. KNOWLEDGE BASE & SYSTEM PROMPT MULTI-LANGUAGE
 # ==========================================
 SYSTEM_PROMPT = f"""
-PERAN & KONTROL UTAMA:
-Kamu adalah Asisten AI Resmi & Cerdas untuk ekosistem FIYYA ({REFERRAL_LINK}).
-Tugas utamamu adalah memahami maksud/intent pengguna secara sangat ramah, luwes, dan natural, terlepas dari bahasa gaul, singkatan, slang, typo, maupun gaya bahasa informal (contoh: "dp" = deposit, "min" = minimal, "brp" = berapa, "apaan sih", "fiyya tuh apa", "spill dong", dsb).
+CRITICAL LANGUAGE INSTRUCTION:
+You MUST ALWAYS detect the language used by the user in their latest message and RESPOND STRICTLY IN THAT SAME LANGUAGE.
+- If the user writes in Portuguese (e.g. "Boa noite", "Quanto é o depósito mínimo?"), respond ONLY in Portuguese.
+- If the user writes in Japanese, respond ONLY in Japanese.
+- If the user writes in Chinese, respond ONLY in Chinese.
+- If the user writes in Indonesian, respond ONLY in Indonesian.
+- If the user writes in English, respond ONLY in English.
 
-ATURAN PERILAKU WAJIB:
-1. PEMAHAMAN INTENT NATURAL: Jawab pertanyaan pengguna secara cerdas dan manusiawi. Gunakan gaya bahasa yang ramah, sopan, dan luwes mengikuti gaya bahasa pengguna.
-2. SAPAAN RAMAH: Jika pengguna menyapa (Halo, Pagi/Sore/Malam, Hai, Alo, dsb), WAJIB membalas sapaan dengan ramah terlebih dahulu.
-3. PENDAFTARAN: Arahkan pengguna secara halus untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan pendaftaran atau cara bergabung.
-4. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan secara ringkas isinya dan informasikan bahwa file PDF telah dikirimkan secara langsung.
-5. BATASAN KETAT: DILARANG KERAS membahas agama, syariah, atau topik di luar ekosistem FIYYA. Jika ditanya hal umum di luar FIYYA, tolak secara sopan dan arahkan kembali ke topik FIYYA.
+ROLE & KNOWLEDGE:
+You are the Official AI Assistant for FIYYA ({REFERRAL_LINK}).
+Always be polite, helpful, and natural. Understand user intent regardless of slang or shortcuts.
+
+CORE RULES:
+1. GREETING: If user greets (e.g., "Boa noite", "Halo", "Good morning"), reply warmly first in their language.
+2. REGISTRATION: Guide users to click '🚀 Register / Join FIYYA' when asking how to sign up or join.
+3. WHITEPAPER: If asked for whitepaper or PDF, mention it covers HFT Agentic OS, Dual Vault, Career Matrix, and Tokenomics, and note that the file is attached.
+4. STRICT RESTRICTIONS: Do NOT discuss religion, sharia, or non-FIYYA topics.
 
 DATABASE PENGETAHUAN RESMI FIYYA:
-- **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI yang terhubung via WebSocket ke exchange global utama (Binance, OKX, Coinbase, Kraken).
-- **Target Yield & Profit Split Harian**: Target Daily Yield 1.5% per hari (Profit Split: 60% USDT cair yang bisa ditarik kapan saja + 40% FIYYA Token vesting harian 100 hari).
-- **Masa Kontrak & Plan (Payout Cap)**: Menggunakan Combined Lifetime Payout Cap antara 200% hingga 350% dari modal deposit. Masa kontrak selesai begitu total profit mencapai batas Payout Cap tersebut, lalu dapat melakukan re-stake / top-up.
-- **Sistem Dual Vault**:
-  * Staking Vault: Modal partisipasi $100 - $10.000 USDT untuk pasif yield harian.
-  * Node Vault ($500 / $1.000 USDT): Paket kualifikasi akselerasi instan ke Rank V4 atau V5 tanpa syarat omzet tim awal yang besar.
-- **Program Pengembangan & Bonus Jaringan (Career Matrix V1 - V8)**: Daily Matching Bonus dari profit pasif tim downline, kenaikan Payout Cap hingga 350%, dan akselerasi rank.
-- **Penarikan (Withdrawal / WD)**: Minimal WD 10 USDT. Biaya (Fee): Instant (10%), >15 Hari (5%), >30 Hari (3%).
-- **Tokenomics**: Total Supply 1 Miliar Token BEP-20 (BNB Chain), Initial Listing DEX Price $0.01 USD.
+- **Definisi FIYYA**: Platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI (Binance, OKX, Coinbase, Kraken).
+- **Yield & Profit Split**: Target Daily Yield 1.5% per hari (60% USDT cair + 40% FIYYA Token vesting harian 100 hari).
+- **Masa Kontrak & Payout Cap**: Combined Lifetime Payout Cap 200% - 350% dari deposit.
+- **Dual Vault**: Staking Vault ($100 - $10.000 USDT) & Node Vault ($500 / $1.000 USDT for instant Rank V4/V5 qualification).
+- **Career Matrix V1 - V8**: Daily Matching Bonus & Payout Cap acceleration.
+- **Withdrawal**: Minimal 10 USDT. Fee: Instant (10%), >15 Hari (5%), >30 Hari (3%).
+- **Tokenomics**: 1 Billion BEP-20 Tokens (BNB Chain), Initial Listing $0.01 USD.
 """
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -105,90 +110,34 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
         first_name = member.first_name
         lang = (member.language_code or "").lower()
 
-        # 1. INDONESIA (id)
         if lang.startswith("id"):
-            welcome_text = (
-                f"Selamat datang di Komunitas Resmi FIYYA, {first_name}! 👋🚀\n\n"
-                "Saya adalah Asisten AI FIYYA. Silakan tanyakan apa saja seputar Arbitrase HFT, Staking Vault, Node Vault, maupun Program Market & Strategic Plan V1-V8 langsung di grup ini."
-            )
-        # 2. MELAYU (ms)
+            welcome_text = f"Selamat datang di Komunitas Resmi FIYYA, {first_name}! 👋🚀\n\nSaya adalah Asisten AI FIYYA. Silakan tanyakan apa saja seputar Arbitrase HFT, Staking Vault, Node Vault, maupun Program Market & Strategic Plan V1-V8 langsung di grup ini."
         elif lang.startswith("ms"):
-            welcome_text = (
-                f"Selamat datang ke Komuniti Rasmi FIYYA, {first_name}! 👋🚀\n\n"
-                "Saya ialah Pembantu AI FIYYA. Sila tanya apa sahaja mengenai Arbitraj HFT, Staking Vault, Node Vault, atau Pelan Pasaran & Strategik V1-V8 terus di dalam kumpulan ini."
-            )
-        # 3. JEPANG / JAPANESE (ja)
+            welcome_text = f"Selamat datang ke Komuniti Rasmi FIYYA, {first_name}! 👋🚀\n\nSaya ialah Pembantu AI FIYYA. Sila tanya apa sahaja mengenai Arbitraj HFT, Staking Vault, Node Vault, atau Pelan Pasaran & Strategik V1-V8 terus di dalam kumpulan ini."
         elif lang.startswith("ja"):
-            welcome_text = (
-                f"FIYYA公式コミュニティへようこそ、{first_name}さん！ 👋🚀\n\n"
-                "私はFIYYA AIアシスタントです。HFTアービトラージ、ステーキングヴォルト、ノードヴォルト、マーケット＆戦略プランV1-V8について、このグループでお気軽にご質問ください。"
-            )
-        # 4. KOREA / KOREANESE (ko)
+            welcome_text = f"FIYYA公式コミュニティへようこそ、{first_name}さん！ 👋🚀\n\n私はFIYYA AIアシスタントです。HFTアービトラージ、ステーキングヴォルト、ノードヴォルト、マーケット＆戦略プランV1-V8について、このグループでお気軽にご質問ください。"
         elif lang.startswith("ko"):
-            welcome_text = (
-                f"FIYYA 공식 커뮤니티에 오신 것을 환영합니다, {first_name}님! 👋🚀\n\n"
-                "저는 FIYYA AI 어시스턴트입니다. HFT 차익거래, 스테이킹 볼트, 노드 볼트, 마켓 및 전략 플랜 V1-V8에 대해 궁금한 점이 있으시면 이 그룹에서 언제든지 질문해 주세요."
-            )
-        # 5. CINA / CHINESE (zh)
+            welcome_text = f"FIYYA 공식 커뮤니티에 오신 것을 환영합니다, {first_name}님! 👋🚀\n\n저는 FIYYA AI 어시스턴트입니다. HFT 차익거래, 스테이킹 볼트, 노드 볼트, 마켓 및 전략 플랜 V1-V8에 대해 궁금한 점이 있으시면 이 그룹에서 언제든지 질문해 주세요."
         elif lang.startswith("zh"):
-            welcome_text = (
-                f"欢迎来到 FIYYA 官方社区，{first_name}！ 👋🚀\n\n"
-                "我是 FIYYA AI 助手。欢迎在本群组中随时咨询有关 HFT 套利、质押金库 (Staking Vault)、节点金库 (Node Vault) 以及市场与战略计划 V1-V8 的任何问题。"
-            )
-        # 6. RUSIA / RUSSIAN (ru)
+            welcome_text = f"欢迎来到 FIYYA 官方社区，{first_name}！ 👋🚀\n\n我是 FIYYA AI 助手。欢迎在本群组中随时咨询有关 HFT 套利、质押金库 (Staking Vault)、节点金库 (Node Vault) 以及市场与战略计划 V1-V8 的任何问题。"
         elif lang.startswith("ru"):
-            welcome_text = (
-                f"Добро пожаловать в официальное сообщество FIYYA, {first_name}! 👋🚀\n\n"
-                "Я — ИИ-ассистент FIYYA. Задавайте любые вопросы об арбитраже HFT, Staking Vault, Node Vault, а также о рыночном и стратегическом плане V1-V8 прямо в этой группе."
-            )
-        # 7. PORTUGIS / PORTUGUESE (pt)
+            welcome_text = f"Добро пожаловать в официальное сообщество FIYYA, {first_name}! 👋🚀\n\nЯ — ИИ-ассистент FIYYA. Задавайте любые вопросы об арбитраже HFT, Staking Vault, Node Vault, а также о рыночном и стратегическом плане V1-V8 прямо в этой группе."
         elif lang.startswith("pt"):
-            welcome_text = (
-                f"Bem-vindo à Comunidade Oficial da FIYYA, {first_name}! 👋🚀\n\n"
-                "Eu sou o Assistente de IA da FIYYA. Sinta-se à vontade para perguntar qualquer coisa sobre Arbitragem HFT, Staking Vault, Node Vault ou o Plano Estratégico e de Mercado V1-V8 diretamente neste grupo."
-            )
-        # 8. HINDI (hi)
+            welcome_text = f"Bem-vindo à Comunidade Oficial da FIYYA, {first_name}! 👋🚀\n\nEu sou o Assistente de IA da FIYYA. Sinta-se à vontade para perguntar qualquer coisa sobre Arbitragem HFT, Staking Vault, Node Vault ou o Plano Estratégico e de Mercado V1-V8 diretamente neste grupo."
         elif lang.startswith("hi"):
-            welcome_text = (
-                f"FIYYA आधिकारिक समुदाय में आपका स्वागत है, {first_name}! 👋🚀\n\n"
-                "मैं FIYYA AI सहायक हूँ। इस समूह में HFT आर्बिट्राज, स्टेकिंग वॉल्ट, नोड वॉल्ट, या मार्केट और रणनीतिक योजना V1-V8 के बारे में बेझिझक कुछ भी पूछें।"
-            )
-        # 9. THAILAND / THAI (th)
+            welcome_text = f"FIYYA आधिकारिक समुदाय में आपका स्वागत है, {first_name}! 👋🚀\n\nमैं FIYYA AI सहायक हूँ। इस समूह में HFT आर्बिट्राज, स्टेकिंग वॉल्ट, नोड वॉल्ट, या मार्केट और रणनीतिक योजना V1-V8 के बारे में बेझिझक कुछ भी पूछें।"
         elif lang.startswith("th"):
-            welcome_text = (
-                f"ยินดีต้อนรับสู่ชุมชนอย่างเป็นทางการของ FIYYA, {first_name}! 👋🚀\n\n"
-                "ฉันคือผู้ช่วย AI ของ FIYYA สอบถามเกี่ยวกับ HFT Arbitrage, Staking Vault, Node Vault หรือแผนการตลาดและกลยุทธ์ V1-V8 ได้โดยตรงในกลุ่มนี้"
-            )
-        # 10. VIETNAM / VIETNAMESE (vi)
+            welcome_text = f"ยินดีต้อนรับสู่ชุมชนอย่างเป็นทางการของ FIYYA, {first_name}! 👋🚀\n\nฉันคือผู้ช่วย AI ของ FIYYA สอบถามเกี่ยวกับ HFT Arbitrage, Staking Vault, Node Vault หรือแผนการตลาดและกลยุทธ์ V1-V8 ได้โดยตรงในกลุ่มนี้"
         elif lang.startswith("vi"):
-            welcome_text = (
-                f"Chào mừng bạn đến với Cộng đồng Chính thức của FIYYA, {first_name}! 👋🚀\n\n"
-                "Tôi là Trợ lý AI của FIYYA. Hãy thoải mái hỏi bất kỳ điều gì về Chênh lệch giá HFT, Staking Vault, Node Vault hoặc Kế hoạch Chiến lược & Thị trường V1-V8 ngay trong nhóm này."
-            )
-        # 11. TAGALOG / FILIPINO (tl / fil)
+            welcome_text = f"Chào mừng bạn đến với Cộng đồng Chính thức của FIYYA, {first_name}! 👋🚀\n\nTôi là Trợ lý AI của FIYYA. Hãy thoải mái hỏi bất kỳ điều gì về Chênh lệch giá HFT, Staking Vault, Node Vault hoặc Kế hoạch Chiến lược & Thị trường V1-V8 ngay trong nhóm này."
         elif lang.startswith("tl") or lang.startswith("fil"):
-            welcome_text = (
-                f"Maligayang pagdating sa Opisyal na Komunidad ng FIYYA, {first_name}! 👋🚀\n\n"
-                "Ako ang FIYYA AI Assistant. Huwag mag-atubiling magtanong tungkol sa HFT Arbitrage, Staking Vault, Node Vault, o ang Market & Strategic Plan V1-V8 nang direkta sa grupong ito."
-            )
-        # 12. ARABIC (ar)
+            welcome_text = f"Maligayang pagdating sa Opisyal na Komunidad ng FIYYA, {first_name}! 👋🚀\n\nAko ang FIYYA AI Assistant. Huwag mag-atubiling magtanong tungkol sa HFT Arbitrage, Staking Vault, Node Vault, o ang Market & Strategic Plan V1-V8 nang direkta sa grupong ito."
         elif lang.startswith("ar"):
-            welcome_text = (
-                f"مرحبًا بك في مجتمع FIYYA الرسمي، {first_name}! 👋🚀\n\n"
-                "أنا مساعد الذكاء الاصطناعي لـ FIYYA. لا تتردد في السؤال عن أي شيء يتعلق بالتحكيم HFT، أو Staking Vault، أو Node Vault، أو خطة السوق والاستراتيجية V1-V8 مباشرة في هذه المجموعة."
-            )
-        # 13. PRANCIS / FRENCH (fr)
+            welcome_text = f"مرحبًا بك في مجتمع FIYYA الرسمي، {first_name}! 👋🚀\n\nأنا مساعد الذكاء الاصطناعي لـ FIYYA. لا تتردد في السؤال عن أي شيء يتعلق بالتحكيم HFT، أو Staking Vault، أو Node Vault، أو خطة السوق والاستراتيجية V1-V8 مباشرة في هذه المجموعة."
         elif lang.startswith("fr"):
-            welcome_text = (
-                f"Bienvenue dans la communauté officielle de FIYYA, {first_name} ! 👋🚀\n\n"
-                "Je suis l'assistant IA de FIYYA. N'hésitez pas à poser vos questions sur l'arbitrage HFT, le Staking Vault, le Node Vault ou le plan stratégique et de marché V1-V8 directement dans ce groupe."
-            )
-        # 14. INGGRIS / ENGLISH & LAINNYA (en / Default)
+            welcome_text = f"Bienvenue dans la communauté officielle de FIYYA, {first_name} ! 👋🚀\n\nJe suis l'assistant IA de FIYYA. N'hésitez pas à poser vos questions sur l'arbitrage HFT, le Staking Vault, le Node Vault ou le plan stratégique et de marché V1-V8 directement dans ce groupe."
         else:
-            welcome_text = (
-                f"Welcome to the Official FIYYA Community, {first_name}! 👋🚀\n\n"
-                "I am the FIYYA AI Assistant. Feel free to ask anything about HFT Arbitrage, Staking Vaults, Node Vaults, or the Market & Strategic Plan V1-V8 directly in this group."
-            )
+            welcome_text = f"Welcome to the Official FIYYA Community, {first_name}! 👋🚀\n\nI am the FIYYA AI Assistant. Feel free to ask anything about HFT Arbitrage, Staking Vaults, Node Vaults, or the Market & Strategic Plan V1-V8 directly in this group."
 
         await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
@@ -216,7 +165,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    # A. INTERCEPT INSTAN 1: PENGIRIMAN FILE PDF WHITEPAPER
+    # A. INTERCEPT INSTAN: PENGIRIMAN FILE PDF WHITEPAPER
     if any(k in t for k in ["whitepaper", "paper", "pdf", "dokumen"]):
         caption_text = (
             "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
@@ -233,22 +182,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logging.error(f"Gagal kirim PDF: {e}")
 
-    # B. INTERCEPT INSTAN 2: SAPAAN MURNI (TANPA MATERI)
-    is_greeting = any(re.search(r'\b' + re.escape(k) + r'\b', t) for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "alo", "apa kabar", "assalamualaikum"])
-    is_asking_depo = any(k in t for k in ["dp", "depo", "deposit", "modal"]) and any(k in t for k in ["min", "brp", "berapa", "kecil", "paling"])
-
-    if is_greeting and not is_asking_depo and not any(k in t for k in ["fiyya", "plan", "wd", "bunga", "profit", "sistem", "apaan", "bagaimana"]):
-        bot_reply = "Halo! Selamat datang di FIYYA Official AI Assistant. 👋\n\nAda yang bisa saya bantu terkait platform FIYYA, deposit, plan, atau reward jaringan hari ini?"
-        await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
-        return
-
-    # C. INTERCEPT INSTAN 3: SINGKATAN DEPOSIT ("MIN DP BRP")
-    if is_asking_depo:
-        bot_reply = "Minimal deposit Staking Vault di FIYYA mulai dari **$100 USDT** (target yield 1.5% per hari), sedangkan untuk paket Node Vault sebesar **$500 / $1.000 USDT**."
-        await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
-        return
-
-    # D. PROSES KE OPENROUTER AI ENGINE (UNTUK PERTANYAAN KOMPLEKS)
+    # B. SERAHKAN SELURUH PERTANYAAN/SAPAAN KE OPENROUTER AI MULTI-LANGUAGE
     if chat_id not in user_conversations:
         user_conversations[chat_id] = []
 
@@ -266,20 +200,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     
     models_to_try = [
-        "qwen/qwen-2.5-7b-instruct:free",
+        "google/gemini-2.0-flash-lite-preview-02-05:free",
         "meta-llama/llama-3.3-70b-instruct:free",
-        "google/gemini-2.0-flash-lite-preview-02-05:free"
+        "qwen/qwen-2.5-7b-instruct:free"
     ]
     
     bot_reply = None
     
-    async with httpx.AsyncClient(timeout=10.0) as client_http:
+    async with httpx.AsyncClient(timeout=12.0) as client_http:
         for model in models_to_try:
             try:
                 data = {
                     "model": model,
                     "messages": messages_payload,
-                    "temperature": 0.4
+                    "temperature": 0.3
                 }
                 res = await client_http.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers)
                 if res.status_code == 200:
@@ -291,13 +225,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error model {model}: {e}")
                 continue
 
-    # FALLBACK ENGINE JIKA OPENROUTER SERVER OVERLOAD
+    # FALLBACK ADAPTIF SMART MULTI-LANGUAGE (JIKA API UNREACHABLE)
     if not bot_reply:
-        bot_reply = (
-            "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) institusional berbasis Agentic OS AI. "
-            "Minimal deposit Staking Vault mulai dari $100 USDT (Target yield 1.5% per hari).\n\n"
-            f"Untuk pendaftaran akun resmi, silakan klik tombol di bawah ini:\n👉 {REFERRAL_LINK}"
-        )
+        # Bahasa Portugis
+        if any(k in t for k in ["boa", "bom", "obrigado", "quanto", "como", "olá"]):
+            bot_reply = f"Olá! FIYYA é uma plataforma institucional de arbitragem HFT baseada em Agentic OS AI. O depósito mínimo no Staking Vault é de $100 USDT.\n\nRegiste-se aqui:\n👉 {REFERRAL_LINK}"
+        # Bahasa Mandarin
+        elif re.search(r'[\u4e00-\u9fff]', raw_text):
+            bot_reply = f"您好！FIYYA 是基于 Agentic OS AI 的机构级高频套利 (HFT) 平台。Staking Vault 的最低存款额为 $100 USDT。\n\n注册链接：\n👉 {REFERRAL_LINK}"
+        # Bahasa Jepang
+        elif re.search(r'[\u3040-\u30ff]', raw_text):
+            bot_reply = f"こんにちは！FIYYAはAgentic OS AIをベースとしたHFTアービトラージプラットフォームです。最低預入額は $100 USDT から。\n\n登録はこちら：\n👉 {REFERRAL_LINK}"
+        # Bahasa Inggris
+        elif any(k in t for k in ["hi", "hello", "good", "what", "how", "min"]):
+            bot_reply = f"Hello! FIYYA is an institutional HFT arbitrage platform powered by Agentic OS AI. Minimum deposit is $100 USDT.\n\nRegister here:\n👉 {REFERRAL_LINK}"
+        # Bahasa Indonesia / Fallback
+        else:
+            bot_reply = f"Halo! FIYYA adalah platform arbitrase High-Frequency Trading (HFT) berbasis Agentic OS AI. Minimal deposit Staking Vault mulai dari $100 USDT.\n\nPendaftaran akun resmi:\n👉 {REFERRAL_LINK}"
 
     # PERSIAPAN TEKS: HAPUS OTO /HARI AGAR TIDAK JADI LINK BIRU
     bot_reply = re.sub(r'/hari', 'per hari', bot_reply, flags=re.IGNORECASE)
