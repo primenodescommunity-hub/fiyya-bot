@@ -69,9 +69,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_user(chat_id)
     
     welcome_text = (
-        "Selamat datang di FIYYA Official AI Assistant.\n\n"
+        "Selamat datang di FIYYA Official Assistant.\n\n"
         "Saya adalah asisten virtual resmi untuk platform FIYYA.\n"
-        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, atau ekosistem FIYYA?"
+        "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, atau ekosistem FIYYA?"
     )
     await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
@@ -83,12 +83,13 @@ async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
-        "Panduan Penggunaan FIYYA AI Assistant:\n\n"
+        "Panduan Penggunaan FIYYA Assistant:\n\n"
         "Anda dapat menanyakan hal-hal berikut:\n"
-        "1. Apa itu platform FIYYA & Agentic OS AI?\n"
-        "2. Bagaimana cara kerja Dual Vault (Staking vs Node)?\n"
-        "3. Berapa target Daily Yield & Pembagian Hasil (Profit Split)?\n"
-        "4. Bagaimana mekanisme Career Matrix (Rank V1 - V8)?\n\n"
+        "1. Apa itu FIYYA?\n"
+        "2. Berapa minimal deposit / modal awal?\n"
+        "3. Bagaimana cara kerja Dual Vault (Staking vs Node)?\n"
+        "4. Berapa target Daily Yield & Pembagian Hasil?\n"
+        "5. Berapa biaya penarikan (withdraw)?\n\n"
         "Ketik pertanyaan Anda secara langsung di kolom chat."
     )
     await update.message.reply_text(help_text, reply_markup=get_official_buttons())
@@ -135,20 +136,68 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    if "daftar" in text or "register" in text or "join" in text or "buat akun" in text:
-        bot_reply = f"Untuk mendaftar di akun resmi platform FIYYA, silakan klik tombol '🚀 Register / Join FIYYA' di bawah pesan ini atau akses langsung via link berikut:\n\n👉 {REFERRAL_LINK}"
-    elif "vault" in text or "staking" in text or "node" in text:
-        bot_reply = "FIYYA menggunakan sistem Dual Vault:\n\n1. **Staking Vault** ($100 - $10.000): Target Daily Yield 1.5% dengan pembagian hasil 60% USDT cair & 40% FIYYA token.\n2. **Node Vault** ($500 / $1.000): Untuk akselerasi instan kualifikasi Rank V4/V5."
-    elif "yield" in text or "profit" in text or "hasil" in text or "bunga" in text:
-        bot_reply = "Target Daily Yield FIYYA adalah **1.5% per hari**.\n\nPembagian hasil harian:\n• 60% USDT cair (dapat ditarik langsung)\n• 40% FIYYA Token (vesting harian 100 hari)."
-    elif "biaya" in text or "fee" in text or "withdraw" in text or "tarik" in text:
-        bot_reply = "Biaya Penarikan (Withdrawal Service Fee) FIYYA berjenjang:\n• Penarikan Instant: Biaya 10%\n• Penarikan setelah 15 Hari: Biaya 5%\n• Penarikan setelah 30 Hari: Biaya 3%"
-    elif "rank" in text or "career" in text or "v1" in text or "v8" in text or "referral" in text:
-        bot_reply = "Ekosistem FIYYA memiliki **Career Matrix V1 hingga V8** dengan bonus matching harian dari profit downline serta Combined Lifetime Payout Cap mulai dari 200% hingga 350%."
-    elif "halo" in text or "hi" in text or "p" in text or "test" in text:
-        bot_reply = "Halo! Saya adalah Asisten AI Resmi FIYYA. Ada yang bisa saya bantu terkait platform arbitrase FIYYA, Dual Vault, Daily Yield, atau pendaftaran?"
+    # Deteksi Pertanyaan seputar "Apa itu FIYYA"
+    if any(k in text for k in ["apa itu", "apa sih", "jelaskan", "pengertian", "fiyya itu apa"]):
+        bot_reply = (
+            "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) berbasis Agentic OS AI.\n\n"
+            "Platform ini bekerja secara otomatis memanfaatkan perbedaan harga aset kripto di berbagai exchange global "
+            "seperti Binance, OKX, Coinbase, dan Kraken secara real-time sub-milidetik untuk menghasilkan profit harian yang stabil."
+        )
+    # Deteksi Pertanyaan Minimal Deposit / Modal
+    elif any(k in text for k in ["deposit", "modal", "minimal", "paling kecil", "berapa usdt", "masuk"]):
+        bot_reply = (
+            "Minimal deposit / partisipasi di platform FIYYA adalah sebagai berikut:\n\n"
+            "• **Staking Vault**: Mulai dari **$100 USDT** hingga $10.000 USDT (Target Daily Yield 1.5%).\n"
+            "• **Node Vault**: Mulai dari **$500** / **$1.000 USDT** (Untuk akselerasi instan kualifikasi Rank V4/V5)."
+        )
+    # Deteksi Pertanyaan Cara Daftar / Registrasi
+    elif any(k in text for k in ["daftar", "register", "join", "buat akun", "caranya", "cara"]):
+        bot_reply = (
+            f"Untuk mendaftar di platform FIYYA, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah ini "
+            f"atau klik langsung link resmi berikut:\n\n👉 {REFERRAL_LINK}"
+        )
+    # Deteksi Pertanyaan Dual Vault / Staking / Node
+    elif any(k in text for k in ["vault", "staking", "node"]):
+        bot_reply = (
+            "FIYYA menggunakan sistem Dual Vault:\n\n"
+            "1. **Staking Vault** ($100 - $10.000): Target Daily Yield 1.5% dengan profit split 60% USDT cair & 40% FIYYA token.\n"
+            "2. **Node Vault** ($500 / $1.000): Akselerasi instan kualifikasi Rank V4/V5 tanpa perlu jaringan besar awal."
+        )
+    # Deteksi Pertanyaan Yield / Profit / Hasil
+    elif any(k in text for k in ["yield", "profit", "hasil", "bunga", "keuntungan", "dapat berapa"]):
+        bot_reply = (
+            "Target Daily Yield FIYYA adalah **1.5% per hari**.\n\n"
+            "Pembagian Hasil Harian:\n"
+            "• **60% USDT** (cair dan langsung bisa ditarik kapan saja)\n"
+            "• **40% FIYYA Token** (vesting harian selama 100 hari)"
+        )
+    # Deteksi Biaya Withdraw / Penarikan
+    elif any(k in text for k in ["biaya", "fee", "withdraw", "tarik", "wd"]):
+        bot_reply = (
+            "Biaya Penarikan (Withdrawal Service Fee) FIYYA berjenjang berdasarkan masa simpan:\n\n"
+            "• Penarikan Instant: Biaya 10%\n"
+            "• Penarikan setelah 15 Hari: Biaya 5%\n"
+            "• Penarikan setelah 30 Hari: Biaya 3%"
+        )
+    # Deteksi Rank / Career Matrix
+    elif any(k in text for k in ["rank", "career", "v1", "v8", "referral", "bonus"]):
+        bot_reply = (
+            "FIYYA memiliki sistem **Career Matrix V1 hingga V8** dengan bonus matching harian dari profit jaringan downline "
+            "serta Combined Lifetime Payout Cap mulai dari 200% hingga 350%."
+        )
+    # Menyapa
+    elif any(k in text for k in ["halo", "hi", "p", "test", "tes"]):
+        bot_reply = "Halo! Saya Asisten Resmi FIYYA. Ada yang bisa dibantu terkait apa itu FIYYA, minimal deposit, atau cara pendaftaran?"
+    # Fallback jika kata kunci tidak cocok
     else:
-        bot_reply = f"Sebagai Asisten AI Resmi FIYYA, saya siap melayani pertanyaan seputar ekosistem, teknologi arbitrase, Dual Vault, dan platform FIYYA.\n\nUntuk pendaftaran akun, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah ini."
+        bot_reply = (
+            "Sebagai Asisten Resmi FIYYA, saya dapat memberikan informasi seputar:\n"
+            "1. **Apa itu FIYYA**\n"
+            "2. **Minimal Deposit** ($100 USDT)\n"
+            "3. **Dual Vault & Daily Yield** (1.5% per hari)\n"
+            "4. **Biaya Penarikan & Cara Daftar**\n\n"
+            "Silakan ketik pertanyaan Anda secara langsung!"
+        )
 
     await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
 
