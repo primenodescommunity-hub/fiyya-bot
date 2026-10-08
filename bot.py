@@ -1,4 +1,5 @@
 import logging
+import requests
 import re
 import json
 import os
@@ -6,11 +7,13 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, CallbackQueryHandler, filters
 
-TELEGRAM_TOKEN = "8850888324:AAEkSpC--QlIYLr3BLzG1YH01meV7LQmr_U"
+TELEGRAM_TOKEN = "8850888324:AAHyqhbTzGZuHH2ytQY45qaYPYT6-ARvDd0"
+OPENROUTER_KEY = "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"
 REFERRAL_LINK = "https://www.fiyya.co/signup?ref=66796114"
 ADMIN_TELEGRAM_ID = 8870805553
 
 DB_FILE = "users.json"
+user_conversations = {}
 
 def load_users():
     if os.path.exists(DB_FILE):
@@ -31,11 +34,35 @@ def save_user(chat_id):
         except Exception as e:
             logging.error(f"Error save user: {e}")
 
+SYSTEM_PROMPT = f"""
+PERAN & KONTROL:
+Kamu adalah Asisten AI Resmi untuk platform FIYYA ({REFERRAL_LINK}). Jawab selalu dalam bahasa yang digunakan oleh pengguna secara otomatis.
+
+ATURAN UTAMA:
+1. HANYA JAWAB TOPIK FIYYA: Kamu hanya melayani pertanyaan seputar ekosistem, teknologi HFT arbitrase, Dual Vault, Yield, dan platform FIYYA.
+2. PENDAFTARAN: Jika user bertanya cara mendaftar/buat akun/join, arahkan untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan.
+3. DILARANG MENYEBUTKAN SYARIAH ATAU KEUTAMAAN AGAMA.
+4. FORMATTING: Jawab singkat, padat, ramah, dan profesional.
+
+DATA RESMI FIYYA (WHITEPAPER V.01.0.3):
+- Definisi FIYYA: Platform arbitrase high-frequency trading (HFT) institusional berbasis Agentic OS AI.
+- Target Daily Yield / Reward: 1.5% per hari.
+- Profit Split Harian: 60% USDT cair (bisa ditarik kapan saja) & 40% FIYYA token (vesting harian 100 hari).
+- Dual Vault: Staking Vault ($100-$10.000 USDT) dan Node Vault ($500 / $1.000 USDT untuk akselerasi rank V4/V5 instan).
+- Combined Lifetime Payout Cap: Batas total penghasilan 200% sampai 350% tergantung referral.
+- Biaya Penarikan (Withdrawal Fee): Instant (10%), 15 Hari (5%), 30 Hari (3%).
+- Career Matrix: Rank V1 hingga V8 dengan bonus matching harian dari profit downline.
+- Tokenomics: 1 Miliar total supply BEP-20 di BNB Chain, harga DEX $0.01 USD.
+"""
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 def get_official_buttons():
     keyboard = [[InlineKeyboardButton("🚀 Register / Join FIYYA", callback_data="btn_register")]]
     return InlineKeyboardMarkup(keyboard)
+
+def clean_markdown(text):
+    return re.sub(r'[*_`\[\]()~>#+\-=|{}.!]', '', text)
 
 async def handle_register_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -46,10 +73,7 @@ async def handle_register_click(update: Update, context: ContextTypes.DEFAULT_TY
     username = f"@{user.username}" if user.username else "Tidak ada username"
     full_name = user.full_name
 
-    reply_text = (
-        f"Silakan klik link di bawah ini untuk pendaftaran akun resmi FIYYA:\n\n"
-        f"👉 {REFERRAL_LINK}"
-    )
+    reply_text = f"Silakan klik link di bawah ini untuk pendaftaran akun resmi FIYYA:\n\n👉 {REFERRAL_LINK}"
     await query.message.reply_text(reply_text)
 
     admin_notify_text = (
@@ -62,154 +86,86 @@ async def handle_register_click(update: Update, context: ContextTypes.DEFAULT_TY
     try:
         await context.bot.send_message(chat_id=ADMIN_TELEGRAM_ID, text=admin_notify_text, parse_mode="Markdown")
     except Exception as e:
-        logging.error(f"Gagal mengirim notifikasi lead ke admin: {e}")
+        logging.error(f"Gagal notif admin: {e}")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     save_user(chat_id)
+    user_conversations[chat_id] = []
     
     welcome_text = (
-        "Selamat datang di FIYYA Official Assistant.\n\n"
+        "Selamat datang di FIYYA Official AI Assistant.\n\n"
         "Saya adalah asisten virtual resmi untuk platform FIYYA.\n"
         "Ada yang bisa saya bantu terkait teknologi arbitrase, Dual Vault, minimal deposit, atau ekosistem FIYYA?"
     )
     await update.message.reply_text(welcome_text, reply_markup=get_official_buttons())
 
-async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    save_user(chat_id)
-    text = "Silakan klik tombol di bawah ini untuk melakukan pendaftaran akun resmi FIYYA di bawah jaringan referral:"
-    await update.message.reply_text(text, reply_markup=get_official_buttons())
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    help_text = (
-        "Panduan Penggunaan FIYYA Assistant:\n\n"
-        "Anda dapat menanyakan hal-hal berikut:\n"
-        "1. Apa itu FIYYA?\n"
-        "2. Berapa minimal deposit / modal awal?\n"
-        "3. Bagaimana cara kerja Dual Vault (Staking vs Node)?\n"
-        "4. Berapa target Daily Yield & Pembagian Hasil?\n"
-        "5. Berapa biaya penarikan (withdraw)?\n\n"
-        "Ketik pertanyaan Anda secara langsung di kolom chat."
-    )
-    await update.message.reply_text(help_text, reply_markup=get_official_buttons())
-
-async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    about_text = (
-        "FIYYA High-Frequency Trading & Arbitrage Platform:\n\n"
-        "Platform arbitrase institusional berbasis Agentic OS AI yang terhubung ke exchange global "
-        "(Binance, Coinbase, OKX, Kraken) dengan infrastruktur WebSocket sub-milidetik."
-    )
-    await update.message.reply_text(about_text, reply_markup=get_official_buttons())
-
-async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if chat_id != ADMIN_TELEGRAM_ID:
-        return
-    
-    msg_to_send = " ".join(context.args)
-    if not msg_to_send:
-        await update.message.reply_text("Format salah. Gunakan: /broadcast <pesan>")
-        return
-    
-    users = load_users()
-    count = 0
-    for u_id in users:
-        try:
-            await context.bot.send_message(chat_id=u_id, text=msg_to_send, reply_markup=get_official_buttons())
-            count += 1
-        except Exception:
-            pass
-    await update.message.reply_text(f"Pesan berhasil terkirim ke {count} pengguna.")
-
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if chat_id != ADMIN_TELEGRAM_ID:
-        return
-    users = load_users()
-    await update.message.reply_text(f"Total pengguna yang terdaftar di database bot: {len(users)} user.")
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     save_user(chat_id)
-    text = update.message.text.lower()
+    user_text = update.message.text
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    # Deteksi Pertanyaan seputar "Apa itu FIYYA"
-    if any(k in text for k in ["apa itu", "apa sih", "jelaskan", "pengertian", "fiyya itu apa"]):
-        bot_reply = (
-            "FIYYA adalah platform arbitrase High-Frequency Trading (HFT) berbasis Agentic OS AI.\n\n"
-            "Platform ini bekerja secara otomatis memanfaatkan perbedaan harga aset kripto di berbagai exchange global "
-            "seperti Binance, OKX, Coinbase, dan Kraken secara real-time sub-milidetik untuk menghasilkan profit harian yang stabil."
-        )
-    # Deteksi Pertanyaan Minimal Deposit / Modal
-    elif any(k in text for k in ["deposit", "modal", "minimal", "paling kecil", "berapa usdt", "masuk"]):
-        bot_reply = (
-            "Minimal deposit / partisipasi di platform FIYYA adalah sebagai berikut:\n\n"
-            "• **Staking Vault**: Mulai dari **$100 USDT** hingga $10.000 USDT (Target Daily Yield 1.5%).\n"
-            "• **Node Vault**: Mulai dari **$500** / **$1.000 USDT** (Untuk akselerasi instan kualifikasi Rank V4/V5)."
-        )
-    # Deteksi Pertanyaan Cara Daftar / Registrasi
-    elif any(k in text for k in ["daftar", "register", "join", "buat akun", "caranya", "cara"]):
-        bot_reply = (
-            f"Untuk mendaftar di platform FIYYA, silakan tekan tombol '🚀 Register / Join FIYYA' di bawah ini "
-            f"atau klik langsung link resmi berikut:\n\n👉 {REFERRAL_LINK}"
-        )
-    # Deteksi Pertanyaan Dual Vault / Staking / Node
-    elif any(k in text for k in ["vault", "staking", "node"]):
-        bot_reply = (
-            "FIYYA menggunakan sistem Dual Vault:\n\n"
-            "1. **Staking Vault** ($100 - $10.000): Target Daily Yield 1.5% dengan profit split 60% USDT cair & 40% FIYYA token.\n"
-            "2. **Node Vault** ($500 / $1.000): Akselerasi instan kualifikasi Rank V4/V5 tanpa perlu jaringan besar awal."
-        )
-    # Deteksi Pertanyaan Yield / Profit / Hasil
-    elif any(k in text for k in ["yield", "profit", "hasil", "bunga", "keuntungan", "dapat berapa"]):
-        bot_reply = (
-            "Target Daily Yield FIYYA adalah **1.5% per hari**.\n\n"
-            "Pembagian Hasil Harian:\n"
-            "• **60% USDT** (cair dan langsung bisa ditarik kapan saja)\n"
-            "• **40% FIYYA Token** (vesting harian selama 100 hari)"
-        )
-    # Deteksi Biaya Withdraw / Penarikan
-    elif any(k in text for k in ["biaya", "fee", "withdraw", "tarik", "wd"]):
-        bot_reply = (
-            "Biaya Penarikan (Withdrawal Service Fee) FIYYA berjenjang berdasarkan masa simpan:\n\n"
-            "• Penarikan Instant: Biaya 10%\n"
-            "• Penarikan setelah 15 Hari: Biaya 5%\n"
-            "• Penarikan setelah 30 Hari: Biaya 3%"
-        )
-    # Deteksi Rank / Career Matrix
-    elif any(k in text for k in ["rank", "career", "v1", "v8", "referral", "bonus"]):
-        bot_reply = (
-            "FIYYA memiliki sistem **Career Matrix V1 hingga V8** dengan bonus matching harian dari profit jaringan downline "
-            "serta Combined Lifetime Payout Cap mulai dari 200% hingga 350%."
-        )
-    # Menyapa
-    elif any(k in text for k in ["halo", "hi", "p", "test", "tes"]):
-        bot_reply = "Halo! Saya Asisten Resmi FIYYA. Ada yang bisa dibantu terkait apa itu FIYYA, minimal deposit, atau cara pendaftaran?"
-    # Fallback jika kata kunci tidak cocok
-    else:
-        bot_reply = (
-            "Sebagai Asisten Resmi FIYYA, saya dapat memberikan informasi seputar:\n"
-            "1. **Apa itu FIYYA**\n"
-            "2. **Minimal Deposit** ($100 USDT)\n"
-            "3. **Dual Vault & Daily Yield** (1.5% per hari)\n"
-            "4. **Biaya Penarikan & Cara Daftar**\n\n"
-            "Silakan ketik pertanyaan Anda secara langsung!"
-        )
+    if chat_id not in user_conversations:
+        user_conversations[chat_id] = []
 
-    await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
+    user_conversations[chat_id].append({"role": "user", "content": user_text})
+
+    if len(user_conversations[chat_id]) > 6:
+        user_conversations[chat_id] = user_conversations[chat_id][-6:]
+
+    messages_payload = [{"role": "system", "content": SYSTEM_PROMPT}] + user_conversations[chat_id]
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "HTTP-Referer": "https://fiyya.co",
+        "X-Title": "FIYYA Bot",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "qwen/qwen-2.5-7b-instruct:free",
+        "messages": messages_payload,
+        "temperature": 0.3
+    }
+    
+    bot_reply = None
+    try:
+        req = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=20)
+        res_json = req.json()
+        if "choices" in res_json and len(res_json["choices"]) > 0:
+            bot_reply = res_json['choices'][0]['message']['content']
+        else:
+            data["model"] = "meta-llama/llama-3.3-70b-instruct:free"
+            req2 = requests.post("https://openrouter.ai/api/v1/chat/completions", json=data, headers=headers, timeout=20)
+            res_json2 = req2.json()
+            if "choices" in res_json2 and len(res_json2["choices"]) > 0:
+                bot_reply = res_json2['choices'][0]['message']['content']
+    except Exception as e:
+        logging.error(f"Error AI API: {e}")
+
+    if not bot_reply:
+        t = user_text.lower()
+        if any(k in t for k in ["reward", "profit", "yield", "bunga", "hasil"]):
+            bot_reply = "Target Daily Yield FIYYA adalah 1.5% per hari dengan pembagian profit 60% USDT cair dan 40% FIYYA Token (vesting 100 hari)."
+        elif any(k in t for k in ["deposit", "modal", "minimal"]):
+            bot_reply = "Minimal deposit di FIYYA:\n• Staking Vault: Mulai $100 USDT (Target Yield 1.5%/hari).\n• Node Vault: Mulai $500 / $1.000 USDT."
+        else:
+            bot_reply = f"Untuk informasi selengkapnya atau pendaftaran akun resmi FIYYA, silakan klik tombol '🚀 Register / Join FIYYA' di bawah ini atau kunjungi link berikut:\n\n👉 {REFERRAL_LINK}"
+
+    user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
+
+    try:
+        await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
+    except Exception:
+        clean_reply = clean_markdown(bot_reply)
+        await update.message.reply_text(clean_reply, reply_markup=get_official_buttons())
 
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("register", register_command))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("about", about_command))
-    app.add_handler(CommandHandler("broadcast", broadcast_command))
-    app.add_handler(CommandHandler("stats", stats_command))
     app.add_handler(CallbackQueryHandler(handle_register_click, pattern="^btn_register$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Bot FIYYA Ready!")
+    print("Bot FIYYA AI Ready!")
     app.run_polling()
