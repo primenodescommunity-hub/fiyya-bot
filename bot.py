@@ -61,7 +61,7 @@ Jawab pertanyaan pengguna secara cerdas, profesional, ramah, dan teliti dalam ba
 
 ATURAN PERILAKU WAJIB:
 1. SAPAAN RAMAH: Setiap kali pengguna menyapa (Halo, Pagi/Sore/Malam, Hai, dsb), WAJIB membalas ramah terlebih dahulu.
-2. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan bahwa dokumen resmi memuat arsitektur HFT Agentic OS, Dual Vault, Career Matrix, dan Tokenomics, lalu informasikan bahwa file PDF telah dikirimkan secara langsung.
+2. RESPON WHITEPAPER: Jika pengguna meminta Whitepaper / dokumen resmi / PDF, jelaskan bahwa dokumen resmi memuat arsitektur HFT Agentic OS, Dual Vault, Career Matrix, dan Tokenomics.
 3. RESPON RINCI JARINGAN: Jika pengguna menanyakan tentang bonus jaringan/pengembangan tim, berikan rincian Career Matrix V1-V8, Daily Matching Bonus, dan Payout Cap secara detail.
 4. PENDAFTARAN: Arahkan pengguna untuk menekan tombol '🚀 Register / Join FIYYA' di bawah pesan jika menanyakan cara mendaftar/buat akun.
 5. BATASAN: Dilarang keras membahas agama, syariah, atau topik di luar ekosistem FIYYA.
@@ -72,7 +72,7 @@ DATABASE PENGETAHUAN RESMI FIYYA:
 - **Plan & Masa Kontrak (Payout Cap)**: Combined Lifetime Payout Cap antara 200% hingga 350% dari total deposit. Masa kontrak selesai begitu total profit mencapai Payout Cap.
 - **Sistem Dual Vault**:
   * Staking Vault: Modal $100 - $10.000 USDT (yield pasif 1.5%/hari).
-  * Node Vault ($500 / $1.000 USDT): Paket kualifikasi akselerasi instan ke Rank V4/V5 tanpa syarat tim awal yang besar.
+  * Node Vault ($500 / $1.000 USDT): Paket kualifikasi akselerasi instan ke Rank V4/V5 tanpa syarat omzet tim awal yang besar.
 - **Rincian Bonus Pengembangan Jaringan (Career Matrix V1 - V8)**:
   * **Daily Matching Bonus**: Bonus persentase dari profit harian pasif tim downline Anda.
   * **Peningkatan Payout Cap**: Payout Cap bertambah seiring kenaikan rank (dari 200% hingga maksimal 350%).
@@ -106,14 +106,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     save_user(chat_id)
-    user_text = update.message.text
-    t = user_text.lower().strip()
+    raw_text = update.message.text
+    # bersihkan karakter khusus agar pencarian keyword akurat
+    t = re.sub(r'[^a-zA-Z0-9\s]', ' ', raw_text.lower()).strip()
 
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
-    # 1. PRIORITAS UTAMA: DOKUMEN / WHITEPAPER (DIAMBIL DULUAN)
-    is_asking_whitepaper = any(k in t for k in ["whitepaper", "white paper", "pdf", "dokumen", "paper"])
-    if is_asking_whitepaper:
+    # 1. PRIO UTAMA INSTAN: JIKA MINTA WHITEPAPER / PDF (LANGSUNG KIRIM DOKUMEN VIA FILE_ID)
+    if any(k in t for k in ["whitepaper", "paper", "pdf", "dokumen", "dokumem"]):
         caption_text = (
             "Dokumen Resmi FIYYA (Whitepaper V.01.0.3):\n\n"
             "Berikut adalah dokumen resmi Whitepaper FIYYA yang memuat rincian arsitektur HFT berbasis Agentic OS AI, skema Dual Vault, Career Matrix (V1-V8), hingga spesifikasi Tokenomics BEP-20."
@@ -129,25 +129,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logging.error(f"Gagal kirim PDF: {e}")
 
-    # 2. HANDLING SAPAAN HANYA JIKA TIDAK MEMINTA WHITEPAPER (DENGAN BOUNDARY CHECK)
+    # 2. PRIO KEDUA INSTAN: SAPAAN BIASA (TANPA PERTANYAAN MATERI)
     is_greeting = any(re.search(r'\b' + re.escape(k) + r'\b', t) for k in ["sore", "pagi", "siang", "malam", "halo", "hi", "hai", "helo", "apa kabar", "assalamualaikum"])
-    if is_greeting and not any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya"]):
+    is_query = any(k in t for k in ["jaring", "node", "plan", "reward", "wd", "deposit", "fiyya", "vault", "bunga", "profit", "sistem", "cara"])
+    
+    if is_greeting and not is_query:
         if "pagi" in t: sapaan = "Selamat pagi!"
         elif "siang" in t: sapaan = "Selamat siang!"
         elif "malam" in t: sapaan = "Selamat malam!"
         else: sapaan = "Selamat sore!"
 
         bot_reply = f"Halo, {sapaan} 👋 Selamat datang di FIYYA Official AI Assistant. Ada yang bisa saya bantu terkait platform FIYYA, deposit, plan, atau reward jaringan hari ini?"
-        user_conversations.setdefault(chat_id, []).append({"role": "user", "content": user_text})
+        user_conversations.setdefault(chat_id, []).append({"role": "user", "content": raw_text})
         user_conversations[chat_id].append({"role": "assistant", "content": bot_reply})
         await update.message.reply_text(bot_reply, reply_markup=get_official_buttons())
         return
 
-    # 3. MEMORI PERCAKAPAN & PANGGILAN LLM API
+    # 3. PROSES API OPENROUTER JIKA BUKAN DOKUMEN / SAPAAN MURNI
     if chat_id not in user_conversations:
         user_conversations[chat_id] = []
 
-    user_conversations[chat_id].append({"role": "user", "content": user_text})
+    user_conversations[chat_id].append({"role": "user", "content": raw_text})
     if len(user_conversations[chat_id]) > 8:
         user_conversations[chat_id] = user_conversations[chat_id][-8:]
 
@@ -186,7 +188,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logging.error(f"Error model {model}: {e}")
                 continue
 
-    # 4. FALLBACK FLEKSIBEL JIKA API OVERLOAD
+    # 4. FALLBACK JIKA ALL API OVERLOAD
     if not bot_reply:
         if any(k in t for k in ["jaring", "referral", "refrensi", "matrix", "career", "v1", "v8", "matching", "downline", "kembang"]):
             bot_reply = (
